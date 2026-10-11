@@ -1,0 +1,20 @@
+{
+  "origins": ["ICN", "GMP", "CJJ"],
+  "destinations": ["NRT", "HND"],
+  "start": "2026-12-10",
+  "end": "2026-12-31",
+  "nights": 5,
+  "return_deadline": null,
+  "passengers": {"adults": 1, "children": 0, "infants": 0},
+  "cabin": "economy",
+  "baggage": "none_requested",
+  "direct_only": true,
+  "max_stops": 1,
+  "max_duration_minutes": null,
+  "outbound_window": null,
+  "inbound_window": null,
+  "allow_origin_change": false,
+  "allow_destination_change": false,
+  "compare_oneways": true,
+  "arrival_expansion": false
+}

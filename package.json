@@ -1,0 +1,5 @@
+{
+  "private": true,
+  "scripts": {"test:ui": "node --test tests/test_ui.cjs"},
+  "devDependencies": {"jsdom": "30.1.2"}
+}

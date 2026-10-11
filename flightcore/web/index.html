@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light"><title>여정노트 · 유연한 항공권 비교</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/style.css"><script src="/static/app.js" defer></script>
+</head>
+<body>
+<header class="top"><a class="brand" href="/" aria-label="여정노트 홈"><span class="mark">↗</span>여정노트<span class="brand-small">개인 항공권 비교</span></a><span id="accessMode" class="pill">로컬 전용</span></header>
+<div id="lanWarning" class="warning-banner" role="alert" hidden></div>
+<div class="coverage-bar"><div><span class="eyebrow">입력 커버리지</span><strong id="coverageLabel">검색 조건을 먼저 지정하세요</strong><span id="coverageSmall">수동 입력 현황 · 자동 조회 진행률은 아래에서 별도 표시</span></div><progress id="coverageProgress" max="1" value="0" aria-label="입력 커버리지"></progress></div>
+<main>
+<section class="intro"><div><p class="eyebrow">FLEXIBLE DATES, CLEAR SOURCES</p><h1>날짜는 유연하게.<br>비교는 정확하게.</h1><p>원하는 출발일 범위로 검색하고,<br class="mobile-break"> 왕복과 편도 두 장의 표시가를 비교하세요.</p></div><div class="intro-note"><span class="tiny-dot"></span><b>자동 검색 · 최저 표시가 비교</b><p>수하물·좌석 조건 확인 없이 비교합니다.<br>할인 조건과 조회 시각을 함께 확인하세요.</p></div></section>
+<div class="workspace">
+<aside class="panel search-panel">
+ <div class="section-top"><h2>여행 조건</h2><span class="step">01</span></div>
+ <form id="conditionsForm">
+ <label>출발 국가<select id="country"><option value="KR">대한민국</option></select></label>
+ <fieldset><legend>출발 공항 <small>여러 개 선택</small></legend><div id="originChoices" class="airport-grid"></div></fieldset>
+ <label>목적지 도시<select id="city"><option value="tokyo">도쿄</option><option value="osaka">오사카 여행권역</option><option value="custom">도시·공항 직접 지정</option></select></label>
+ <div id="destinationChoices" class="airport-grid"></div>
+ <label id="customDestination" hidden>목적지 공항 코드 <input id="destinationCodes" placeholder="IATA 코드, 쉼표로 구분" autocomplete="off"></label>
+ <p class="hint">공항은 후보입니다. 실제 운항이나 가격을 보장하지 않습니다. <a href="https://www.gotokyo.org/en/plan/airport-access/index.html" target="_blank" rel="noopener noreferrer">도쿄 출처</a> · <a href="https://www.kansai-airports.co.jp/en/" target="_blank" rel="noopener noreferrer">간사이 출처</a> · <a href="https://www.airport.co.kr/www/index.do" target="_blank" rel="noopener noreferrer">한국공항공사</a></p>
+ <div class="two"><label>출발 가능 시작일<input id="start" type="date" required></label><label>출발 가능 마지막 날<input id="end" type="date" required></label></div>
+ <div class="two"><label>숙박일수<input id="nights" type="number" min="1" step="1" value="5" required></label><label>한국 도착 마감일<input id="deadline" type="date"></label></div>
+ <p class="hint">기본 귀국편 출발일 = 출발일 + 숙박일수. 실제 숙박일수가 다르면 따로 표시합니다.</p>
+ <div class="three"><label>성인<input id="adults" type="number" min="1" value="1" required></label><label>소아<input id="children" type="number" min="0" value="0" required></label><label>유아<input id="infants" type="number" min="0" value="0" required></label></div>
+ <label>좌석 등급<select id="cabin"><option value="economy">일반석</option><option value="premium_economy">프리미엄 일반석</option><option value="business">비즈니스</option><option value="first">일등석</option></select></label>
+ <label>수하물 요구<select id="baggage"><option value="none_requested">추가 수하물 필요 없음</option><option value="carry_on">기내 수하물 필요</option><option value="checked">위탁 수하물 필요</option><option value="both">기내 + 위탁 수하물 필요</option></select></label>
+ <label id="bagSpecWrap" hidden>요구 상세 <input id="bagSpec" placeholder="예: 전 승객 기내 7kg + 위탁 20kg"></label>
+ <p class="hint">통합 표시가 비교는 수하물·좌석 확인 없이 진행합니다. 추가 수하물은 ‘필요 없음’, 좌석은 ‘일반석’을 선택하세요. 시간·직항 필터는 통합 가격 순위에 적용되지 않습니다.</p>
+ <label class="check"><input id="directOnly" type="checkbox" checked>직항만 비교</label>
+ <div class="two"><label>최대 경유·기착 횟수<input id="maxStops" type="number" min="0" value="1"></label><label>방향별 최대 소요시간(분)<input id="maxDuration" type="number" min="1" placeholder="제한 없음"></label></div>
+ <details><summary>시간·공항 변경 옵션</summary><div class="two"><label>가는 편 시작 시각<input id="outStart" type="time"></label><label>가는 편 끝 시각<input id="outEnd" type="time"></label><label>오는 편 시작 시각<input id="inStart" type="time"></label><label>오는 편 끝 시각<input id="inEnd" type="time"></label></div><p class="hint">각 출발 공항 현지 시각. 22:00~02:00처럼 자정을 넘길 수 있습니다.</p><label class="check"><input id="changeKR" type="checkbox">한국 출발·귀국 공항 변경 허용</label><label class="check"><input id="changeLocal" type="checkbox">현지 도착·귀국 출발 공항 변경 허용</label><label class="check"><input id="expansion" type="checkbox">실제 도착일 기준 귀국 날짜 확장</label><p class="hint">입력으로 확인된 도착일만 확장합니다. 전체 운항을 확인했다는 의미가 아닙니다.</p></details>
+ <label class="check"><input id="compareOneWays" type="checkbox" checked>왕복 운임 + 편도 두 장 비교</label>
+ <button class="primary full" type="submit">조건 적용 · 입력 범위 확인</button>
+ <button id="loadExample" class="text-button" type="button">22일 예시 조건 불러오기 · 가격 없음</button>
+ </form>
+ <details class="natural"><summary>자연어로 조건 초안 만들기</summary><label>여행 계획<textarea id="naturalText" placeholder="12월 10일 이후에 일본으로 5박 여행하고 싶어."></textarea></label><button id="parseText" type="button" class="secondary">해석 확인</button><div id="parsedText" class="hint"></div></details>
+</aside>
+<div class="main-column">
+ <section class="panel"><h2>네이버·Google·마이리얼트립 <small>왕복·편도 상위 20개</small></h2><p>출발일 범위와 숙박일수를 적용하고 ‘3개 서비스 함께 검색’을 누르세요. 왕복과 편도 조합을 각각 저렴한 순서로 최대 20개 표시합니다. 수하물·좌석 조건 확인 없이 왕복 표시가와 편도 두 장의 합계를 비교합니다. 판매처 상세 조회는 선택 사항입니다.</p><label>조회 서비스<select id="browserProvider"><option value="google">Google 항공편 · 왕복 및 편도 검색</option><option value="naver">네이버 · 왕복 및 편도 검색</option></select></label><p class="hint">성인 1명·일반석. 선택한 모든 공항 조합과 출발일을 순서대로 조회합니다. 읽을 수 있는 일정의 시간·소요시간·귀국 마감을 점검하고 제외 이유를 표시합니다. 중간 기착·미확인 일정은 추가 확인이 필요합니다. Chrome과 requirements-browser.txt 필요. 로그인·CAPTCHA·접근 차단에서 중단합니다.</p><button id="browserStart" type="button" class="secondary">가격 검색 범위 확인</button> <button id="browserCancel" type="button" class="secondary" disabled>브라우저 조회 중단</button><p id="browserStatus" role="status">아직 실행하지 않음</p><div id="browserOutput"></div><div class="pager"><button id="browserPrev" disabled>이전 조회 조건</button><span id="browserPage"></span><button id="browserNext" disabled>다음 조회 조건</button></div></section>
+ <section class="panel"><h2>마이리얼트립 참고 가격 자동 조회</h2><p>왼쪽에서 조건을 적용한 뒤 조회하세요. 저장된 직항 왕복 가격이며 실시간 가격·편도 비교가 아닙니다. 시간·귀국 마감·수하물 조건은 이 참고 조회에 적용되지 않습니다.</p><button id="referenceStart" class="primary" type="button">조회 범위 확인</button> <button id="referenceCancel" class="secondary" type="button" disabled>조회 중단</button><p id="referenceStatus" role="status">아직 조회하지 않음</p><div id="referenceOutput"></div></section>
+ <section class="panel" id="inputSection"><div class="section-top"><div><p class="eyebrow">기록하기</p><h2>직접 확인한 가격 입력</h2></div><span class="step">02</span></div>
+ <div class="tabs" role="tablist" aria-label="입력 방식"><button id="manualTab" role="tab" aria-selected="true" aria-controls="manualPanel" class="active">한 건 입력</button><button id="csvTab" role="tab" aria-selected="false" aria-controls="csvPanel">CSV 일괄 입력</button></div>
+ <div id="manualPanel" role="tabpanel"><p class="hint">조회한 값을 그대로 기록하세요. 미확인 선택도 저장되며 ‘미확정 후보’에 이유가 표시됩니다.</p>
+ <form id="manualForm">
+ <div class="two"><label>입력 ID<input id="quoteId" required placeholder="개인 식별자 · 중복 불가"></label><label>운임 유형<select id="quoteType"><option value="roundtrip">왕복 예약 운임 한 건</option><option value="outbound">가는 편 편도</option><option value="inbound">오는 편 편도</option></select></label></div>
+ <div id="legForms"></div>
+ <div class="three"><label>전체 승객 총액<input id="amount" inputmode="decimal" required placeholder="확인한 실제 총액"></label><label>통화<input id="currency" pattern="[A-Z]{3}" maxlength="3" value="KRW" required></label><label>좌석 등급<select id="quoteCabin"><option value="economy">일반석</option><option value="premium_economy">프리미엄 일반석</option><option value="business">비즈니스</option><option value="first">일등석</option></select></label></div>
+ <div class="three"><label>성인<input id="quoteAdults" type="number" min="1" value="1" required></label><label>소아<input id="quoteChildren" type="number" min="0" value="0" required></label><label>유아<input id="quoteInfants" type="number" min="0" value="0" required></label></div>
+ <div class="two"><label>조회 출처<input id="source" required placeholder="직접 조회한 서비스"></label><label>실제 판매처<input id="seller" required placeholder="해당 가격의 판매처"></label></div>
+ <label>원본 출처 링크<input id="sourceUrl" type="url" required placeholder="https://"></label>
+ <div class="two"><label>실제 조회 시각<input id="observed" type="datetime-local" required></label><label>조회 시각 UTC 오프셋<input id="observedOffset" value="+09:00" pattern="[+-][0-9]{2}:[0-9]{2}" required></label></div>
+ <fieldset class="confirm-fields"><legend>가격·수하물 확인 <small>필수 선택 · 기본 미확인</small></legend>
+ <div class="two"><label>세금 포함<select id="taxes" required><option value="unknown">미확인</option><option value="yes">포함</option><option value="no">미포함</option></select></label><label>필수 수수료 포함<select id="fees" required><option value="unknown">미확인</option><option value="yes">포함</option><option value="no">미포함</option></select></label></div>
+ <label>미포함 필수 수수료 추가 총액 <small>동일 통화 · 전부 확인한 경우만</small><input id="extraFee" inputmode="decimal" placeholder="모르면 비워 두세요"></label>
+ <label>비교할 수하물 요구<input id="quoteBaggage" value="none_requested" required></label><p class="hint">조건 적용 시 같은 요구를 복사합니다. 다른 요구의 가격은 함께 순위를 매기지 않습니다.</p>
+ <div class="two"><label>수하물 확인<select id="bagsConfirmed" required><option value="unknown">미확인</option><option value="yes">전 구간·승객 요구 충족 확인</option></select></label><label>캐시·과거 자료 여부<select id="cached"><option value="no">사용자가 직접 확인한 입력</option><option value="yes">캐시·과거 가격 참고</option></select></label></div>
+ <label>기내·위탁 수하물 상세<textarea id="bagDetails" placeholder="확인한 허용량과 조건을 구간·승객별로 기록하세요."></textarea></label>
+ </fieldset><button class="primary" type="submit">수동 입력 저장</button><span class="inline-note">외부 검증 없이 입력값으로 저장</span></form></div>
+ <div id="csvPanel" role="tabpanel" hidden><p>스프레드시트에서 작성한 CSV를 붙여넣거나 파일을 선택하세요. <b>미리보기 → 확인 후 일괄 저장</b> 순서로 진행합니다.</p><a class="secondary download" href="/api/csv-template" download>헤더 전용 CSV 양식</a><label>UTF-8 CSV 파일<input id="csvFile" type="file" accept=".csv,text/csv"></label><label>CSV 붙여넣기<textarea id="csvText" rows="8" placeholder="양식의 헤더와 실제 확인한 데이터만 붙여넣으세요."></textarea></label><p class="hint">왕복은 같은 입력ID로 ‘가는편/오는편’, 편도는 ‘편도’. 구간번호는 각 여정에서 1부터. 총액은 전 승객·왕복 전체 가격을 각 행에 동일하게 반복합니다. 중간기착은 0/1/미확인, 포함 항목은 포함/미포함/미확인, 수하물확인은 확인/미확인을 명시하세요. 시각에는 +09:00 등 오프셋이 필요합니다.</p><button id="previewCsv" class="secondary">행별 미리보기</button><button id="saveCsv" class="primary" disabled>확인한 CSV 일괄 저장</button><div id="csvPreview" aria-live="polite"></div></div>
+ </section>
+ <section class="panel compare-panel"><div class="section-top"><div><p class="eyebrow">비교하기</p><h2>입력한 일정 비교</h2></div><span class="step">03</span></div><p class="hint">현재 조건으로 저장된 입력만 비교합니다. 외부 요청 0건 · 비용 0원.</p><div class="actions"><button id="startCompare" class="primary" disabled>범위 확인 후 비교 시작</button><button id="cancelCompare" class="secondary" disabled>비교 취소</button><button id="retryCompare" class="text-button" hidden>다시 비교</button></div><p id="jobStatus" role="status">아직 비교하지 않음</p><p id="snapshotNote" class="hint"></p><div class="two"><label>정렬<select id="sort"><option value="direct_first">직항 우선 · 총액 낮은 순</option><option value="price">경유 포함 전체 총액순</option><option value="departure">출발 시간순</option><option value="duration">소요시간순</option></select></label><p class="hint">통화별로 나누어 정렬합니다. 수동 입력의 최저 금액도 검증된 시장 최저가는 아닙니다.</p></div>
+ <h3>조건에 맞는 입력 <span id="eligibleCount" class="count">0</span></h3><div id="eligibleResults" class="result-list"><p class="empty">입력과 비교를 마치면 이곳에 표시됩니다.<br>현재 확인된 결과가 없습니다.</p></div><div id="eligiblePager" class="pager"></div>
+ <div class="uncertain-heading"><h3>미확정 후보 <span id="uncertainCount" class="count">0</span></h3><p class="hint">조건에서 제외된 입력·조합도 남기고, 제외 사유를 각각 표시합니다.</p></div><div id="uncertainResults" class="result-list"><p class="empty">비교 후 제외 사유를 확인할 수 있습니다.</p></div><div id="uncertainPager" class="pager"></div>
+ </section>
+ <section class="panel"><div class="section-top"><div><p class="eyebrow">빠진 날짜까지</p><h2>출발일별 입력 현황</h2></div></div><p class="hint">표의 금액은 비교를 완료한 수동 입력 중 직항 우선 대표값입니다. 캐시 가격은 포함하지 않습니다.</p><div class="table-scroll"><table><thead><tr><th>출발일</th><th>입력 조건</th><th>상태</th><th>입력값 비교</th></tr></thead><tbody id="calendar"><tr><td colspan="4">검색 조건을 지정하세요.</td></tr></tbody></table></div></section>
+ <section class="panel"><div class="section-top"><h2>저장한 입력 전체</h2><span id="inputCount" class="count">0</span></div><p class="hint">비교 결과와 별개로 모든 원본 입력을 볼 수 있습니다. 삭제 전 확인합니다.</p><div id="allInputs"></div><div id="inputPager" class="pager"></div></section>
+ <section class="panel reference-panel"><h2>참고용 후보</h2><p>캐시 기반 가격은 현재 운임이나 최저가로 취급하지 않습니다.</p><div id="references"><p class="empty">참고용 후보가 없습니다.</p></div><p class="hint">Travelpayouts: 약관 확인 대기 · 미연동 · 연동 코드 없음</p></section>
+ <section class="panel"><h2>서비스에서 직접 확인</h2><p class="hint">아래 링크는 홈페이지 이동입니다. 가격 조회 완료를 뜻하지 않습니다.</p><div id="services" class="service-links"></div><div id="checklist" class="hint">조건 적용 후 공항·기간·승객·직항·수하물 요구를 확인할 수 있습니다.</div></section>
+</div></div>
+<footer>여정노트 · 로컬 개인용 도구 <span>조회 · 비교 · 출처 링크만 제공합니다.</span></footer>
+</main><div id="message" role="status" aria-live="polite" hidden></div>
+<dialog id="confirmDialog"><h2 id="confirmTitle">확인</h2><p id="confirmBody"></p><div class="actions"><button id="confirmNo" class="secondary">취소</button><button id="confirmYes" class="primary">확인</button></div></dialog>
+<script src="/static/references.js" defer></script><script src="/static/browser-prices.js" defer></script><script src="/static/combined-prices.js" defer></script>
+</body></html>
