@@ -69,4 +69,4 @@ async function initialize(){const config=await api('/api/config');csrf=config.cs
  $('saveCsv').onclick=guard(async()=>{if(!conditions)throw new Error('먼저 여행 조건을 적용하세요');if(!csvReceipt)throw new Error('먼저 미리보기를 확인하세요');if(!await confirmAction('CSV 일괄 저장','미리보기의 실제 입력값을 모두 저장할까요? 오류가 있으면 한 건도 저장하지 않습니다.'))return;const result=await api('/api/csv/commit',{text:$('csvText').value,receipt:csvReceipt});invalidateCsv();toast(`${result.saved}건 저장 완료`);await saved();});
  $('startCompare').onclick=guard(()=>startComparison(true));$('cancelCompare').onclick=guard(async()=>{await api(`/api/jobs/${jobId}/cancel`,{});toast('취소 요청을 보냈습니다. 이미 계산된 결과는 일부 결과로 남습니다.');});$('retryCompare').onclick=guard(()=>startComparison(true));$('sort').onchange=guard(async()=>{eligiblePage=uncertainPage=1;await loadResults();});
 }
-initialize().catch(error=>toast(`초기화 실패: ${error.message}`));
+window.flightReady=initialize().catch(error=>toast(`초기화 실패: ${error.message}`));

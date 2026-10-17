@@ -56,3 +56,21 @@ class CombinedPricesTests(unittest.TestCase):
         from dataclasses import replace
         r=ranking(replace(self.c,compare_oneways=False),{'naver':[self.task('outbound',[1]),self.task('inbound',[2])]},[])
         self.assertEqual(r['oneway_total'],0)
+
+class CityRankingTests(unittest.TestCase):
+    def test_each_city_gets_twenty_before_global_limit(self):
+        c=Conditions(('ICN',),('NRT','HND','KIX','UKB'),date(2027,1,18),date(2027,1,18),6)
+        tasks=[]
+        for dest,base in [('NRT',1000),('HND',2000),('KIX',100),('UKB',200)]:
+            for kind in ('roundtrip','outbound','inbound'):
+                tasks.append(dict(number=len(tasks),status='observed_partial',request=dict(kind=kind,origin=dest if kind=='inbound' else 'ICN',destination='ICN' if kind=='inbound' else dest,departure='2027-01-24' if kind=='inbound' else '2027-01-18',return_date='2027-01-24' if kind=='roundtrip' else None),result={'observations':[dict(amount=base+i,currency='KRW',text=f'fixture {i}') for i in range(25)]}))
+        result=ranking(c,{'naver':tasks},[])
+        self.assertTrue(all(r['request']['destination']=='KIX' for r in result['roundtrips']))
+        self.assertEqual([g['name'] for g in result['cities']],['도쿄','오사카'])
+        for group in result['cities']:
+            self.assertEqual(group['roundtrip_total'],50)
+            self.assertEqual(len(group['roundtrips']),20)
+            self.assertEqual(len(group['oneway_combinations']),20)
+            self.assertEqual(group['oneway_total'],1250)
+            self.assertTrue(all(r['request']['destination'] in group['airports'] for r in group['roundtrips']))
+            self.assertTrue(all(r['outbound']['request']['destination'] in group['airports'] for r in group['oneway_combinations']))

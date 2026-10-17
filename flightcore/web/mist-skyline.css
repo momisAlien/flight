@@ -1,0 +1,40 @@
+
+/* Mist skyline: stage one, two landmarks only. Gradient stops follow section C. */
+:root{--sky-top:#8fd3ff;--sky-bottom:#eaf6ff;--glow-peach:#ffd9bf;--far-hill:#d3e3f3;--mid-light:#b9c9de;--mid-dark:#8fa3bf;--near-hill:#4a6a8c;--accent-teal:#3b8a94;--water:#cfe6f6;--mid-light-fade:#c9d8e9;--mid-dark-fade:#a9bad0;--mid-dark-base:#dbe7f3;--fog-white:#fff}
+.skyline-scene{height:min(30vh,25vw);max-height:30vh;overflow:hidden}#skyline{max-width:120vh;margin-inline:auto}
+#skyline{display:block;width:100%;height:100%}
+.mist-far{animation:mist-far-drift 60s ease-in-out infinite alternate;will-change:transform}
+.mist-mid{animation:mist-mid-drift 90s ease-in-out infinite alternate;will-change:transform}
+.mist-near{animation:mist-near-drift 120s ease-in-out infinite alternate;will-change:transform}
+.mist-fog{animation:mist-fog-drift 40s ease-in-out infinite alternate;will-change:transform,opacity}.mist-fog-two{animation-delay:-20s}
+@keyframes mist-far-drift{from{transform:translateX(-4px)}to{transform:translateX(4px)}}
+@keyframes mist-mid-drift{from{transform:translateX(-8px)}to{transform:translateX(8px)}}
+@keyframes mist-near-drift{from{transform:translateX(-12px)}to{transform:translateX(12px)}}
+@keyframes mist-fog-drift{from{transform:translateX(-30px);opacity:.4}to{transform:translateX(30px);opacity:.6}}
+.world-backdrop .horizon-glow,.world-backdrop .water-shimmer{display:none}
+.scenery-paused #skyline *{animation-play-state:paused!important}
+@media(prefers-reduced-motion:reduce){#skyline *{animation:none!important;will-change:auto!important}}
+/* Separate full-canvas review, with no app changes or scripts. */
+body.mist-preview{margin:0;background:var(--sky-bottom);min-height:100vh;display:grid;place-items:center}
+.mist-preview #skyline{width:100%;height:auto;aspect-ratio:4/1}
+
+.mist-preview #skyline{max-width:none}
+
+/* Fixed sky stays behind the page; skyline follows content at the document end. */
+body.simple-ui{position:relative;min-height:100vh;padding-bottom:calc(min(30vh,25vw) + 48px);box-sizing:border-box}
+body>.skyline-scene{position:absolute;bottom:0;left:0;right:0;z-index:0;pointer-events:none}
+.mist-reflection{animation:mist-reflection-sway 10s ease-in-out infinite alternate;will-change:transform}
+.mist-ripple{animation:mist-reflection-sway 16s ease-in-out infinite alternate;will-change:transform}.ripple-b{animation-duration:23s;animation-delay:-8s}.ripple-c{animation-duration:31s;animation-delay:-15s}
+@keyframes mist-reflection-sway{from{transform:translateX(-6px)}to{transform:translateX(6px)}}
+.scenery-paused #skyline *{animation-play-state:paused!important}
+@media(prefers-reduced-motion:reduce){#skyline *{animation:none!important;will-change:auto!important}}
+
+/* Scale/layout review only. Lighting and card treatments remain for later stages. */
+:root{--mid-light:#afc2da;--mid-dark:#7f97b5;--skyline-height:clamp(420px,46vh,720px)}
+body.simple-ui{padding-bottom:calc(var(--skyline-height) + 48px)}
+body>.skyline-scene{position:fixed;inset:auto 0 0;width:100vw;height:var(--skyline-height);max-height:none;background:none}
+body>.skyline-scene #skyline,.mist-preview #skyline{position:fixed;left:0;right:0;bottom:0;width:100vw;height:var(--skyline-height);max-width:none;margin:0;mask-image:none;aspect-ratio:auto}
+body>.skyline-scene #skyline{z-index:0;pointer-events:none}
+@media(max-width:767px){:root{--skyline-height:420px}}
+
+body>.skyline-scene{overflow:visible}body>.skyline-scene #skyline,.mist-preview #skyline{overflow:visible}

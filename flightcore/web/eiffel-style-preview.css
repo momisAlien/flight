@@ -1,0 +1,3 @@
+
+  :root{--sky-top:#8fd3ff;--sky-bottom:#eaf6ff;--peach:#ffd9bf;--mountain:#c9dcef;--building:#b9c9de;--shadow:#8fa3bf;--navy:#35557a;--teal:#2f7f8a;--sand:#efc9a0;--water:#bfe0f5}
+  .light{fill:var(--building)}.shade{fill:var(--shadow)}

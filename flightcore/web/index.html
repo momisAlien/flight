@@ -5,9 +5,13 @@
   <meta name="color-scheme" content="light"><title>여정노트 · 유연한 항공권 비교</title>
   <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/static/style.css"><script src="/static/app.js" defer></script>
+<link rel="stylesheet" href="/static/simple-search.css">
+<link rel="stylesheet" href="/static/world-backdrop.css">
+<script src="/static/world-backdrop.js" defer></script>
 </head>
 <body>
-<header class="top"><a class="brand" href="/" aria-label="여정노트 홈"><span class="mark">↗</span>여정노트<span class="brand-small">개인 항공권 비교</span></a><span id="accessMode" class="pill">로컬 전용</span></header>
+<div class="world-backdrop" aria-hidden="true"></div>
+<header class="top"><a class="brand" href="/" aria-label="여정노트 홈"><span class="mark">↗</span>여정노트<span class="brand-small">개인 항공권 비교</span></a><div class="header-controls"><button id="sceneryMotion" class="scenery-toggle" type="button" aria-pressed="false">배경 일시정지</button><span id="accessMode" class="pill">로컬 전용</span></div></header>
 <div id="lanWarning" class="warning-banner" role="alert" hidden></div>
 <div class="coverage-bar"><div><span class="eyebrow">입력 커버리지</span><strong id="coverageLabel">검색 조건을 먼저 지정하세요</strong><span id="coverageSmall">수동 입력 현황 · 자동 조회 진행률은 아래에서 별도 표시</span></div><progress id="coverageProgress" max="1" value="0" aria-label="입력 커버리지"></progress></div>
 <main>
@@ -71,8 +75,21 @@
  <section class="panel reference-panel"><h2>참고용 후보</h2><p>캐시 기반 가격은 현재 운임이나 최저가로 취급하지 않습니다.</p><div id="references"><p class="empty">참고용 후보가 없습니다.</p></div><p class="hint">Travelpayouts: 약관 확인 대기 · 미연동 · 연동 코드 없음</p></section>
  <section class="panel"><h2>서비스에서 직접 확인</h2><p class="hint">아래 링크는 홈페이지 이동입니다. 가격 조회 완료를 뜻하지 않습니다.</p><div id="services" class="service-links"></div><div id="checklist" class="hint">조건 적용 후 공항·기간·승객·직항·수하물 요구를 확인할 수 있습니다.</div></section>
 </div></div>
-<footer>여정노트 · 로컬 개인용 도구 <span>조회 · 비교 · 출처 링크만 제공합니다.</span></footer>
+<footer><span>여정노트 · 로컬 개인용 도구</span><span>조회 · 비교 · 출처 링크만 제공합니다.</span></footer>
 </main><div id="message" role="status" aria-live="polite" hidden></div>
 <dialog id="confirmDialog"><h2 id="confirmTitle">확인</h2><p id="confirmBody"></p><div class="actions"><button id="confirmNo" class="secondary">취소</button><button id="confirmYes" class="primary">확인</button></div></dialog>
 <script src="/static/references.js" defer></script><script src="/static/browser-prices.js" defer></script><script src="/static/combined-prices.js" defer></script>
+<script src="/static/simple-search.js" defer></script>
+<div class="skyline-scene" aria-hidden="true"><svg id="skyline" class="quiet-desktop" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 240" preserveAspectRatio="xMidYMax meet" aria-hidden="true" focusable="false"><defs><linearGradient id="yn-landscape-base" x2="0" y2="1"><stop offset="0" stop-color="var(--land-mid)"/><stop offset=".72" stop-color="var(--land-mid)"/><stop offset="1" stop-color="var(--page-bottom)"/></linearGradient><linearGradient id="yn-landscape-shade" x2="0" y2="1"><stop stop-color="var(--land-near)"/><stop offset="1" stop-color="var(--page-bottom)"/></linearGradient>
+ <g id="yn-landscape-eiffel"><path d="M60 0 69 52 80 100 116 180H93L81 153Q60 118 39 153L27 180H4L40 100 51 52Z" fill="url(#yn-landscape-base)"/><path d="M60 0 69 52 80 100 116 180H93L81 153Q70 136 60 136Z" fill="url(#yn-landscape-shade)"/><path d="M40 97h40v4H40zM50 50h20v3H50z" fill="var(--land-near)"/></g>
+ <g id="yn-landscape-pagoda"><path d="M28 40h44v130H28z" fill="url(#yn-landscape-shade)"/><path d="M50 10 66 28H34zM34 40h32l17 10H17zM29 65h42l20 11H9zM24 92h52l21 12H3zM20 122h60l22 12H-2zM16 151h68l24 13H-8z" fill="url(#yn-landscape-base)"/></g></defs>
+ <path d="M-40 220Q100 190 250 218T570 223T940 224T1250 210T1640 218V240H-40Z" fill="var(--land-far)"/>
+ <use href="#yn-landscape-eiffel" transform="translate(42 38)"/>
+ <g class="quiet-clock" transform="translate(195 105)"><path d="M0 40h30v78H0zM-4 20h38v25H-4zM-4 20 15 0 34 20z" fill="url(#yn-landscape-base)"/><path d="M20 40h10v78H20zM15 0 34 20H15Z" fill="url(#yn-landscape-shade)"/><circle cx="15" cy="32" r="8" fill="var(--page-bottom)"/><path d="M14 26h2v7l5 3-1 2-6-4z" fill="var(--land-near)"/></g>
+ <g class="quiet-pyramids" opacity=".6"><path d="m1250 153-95 72h145z" fill="url(#yn-landscape-base)"/><path d="m1250 153 50 72h-20z" fill="url(#yn-landscape-shade)"/></g>
+ <use href="#yn-landscape-pagoda" transform="translate(1455 59) scale(.95)"/>
+ <path d="M-40 230Q100 219 260 231T610 233T1030 232T1400 227T1640 234V240H-40Z" fill="var(--page-bottom)"/>
+ </svg><svg class="quiet-mobile" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 390 120" preserveAspectRatio="xMidYMax meet" aria-hidden="true" focusable="false"><defs><linearGradient id="yn-mobile-base" x2="0" y2="1"><stop offset="0" stop-color="var(--land-mid)"/><stop offset=".72" stop-color="var(--land-mid)"/><stop offset="1" stop-color="var(--page-bottom)"/></linearGradient><linearGradient id="yn-mobile-shade" x2="0" y2="1"><stop stop-color="var(--land-near)"/><stop offset="1" stop-color="var(--page-bottom)"/></linearGradient>
+ <g id="yn-mobile-eiffel"><path d="M60 0 69 52 80 100 116 180H93L81 153Q60 118 39 153L27 180H4L40 100 51 52Z" fill="url(#yn-mobile-base)"/><path d="M60 0 69 52 80 100 116 180H93L81 153Q70 136 60 136Z" fill="url(#yn-mobile-shade)"/><path d="M40 97h40v4H40zM50 50h20v3H50z" fill="var(--land-near)"/></g>
+ <g id="yn-mobile-pagoda"><path d="M28 40h44v130H28z" fill="url(#yn-mobile-shade)"/><path d="M50 10 66 28H34zM34 40h32l17 10H17zM29 65h42l20 11H9zM24 92h52l21 12H3zM20 122h60l22 12H-2zM16 151h68l24 13H-8z" fill="url(#yn-mobile-base)"/></g></defs><path d="M0 111Q48 99 103 112T225 108T390 112V120H0Z" fill="var(--land-far)"/><use href="#yn-mobile-eiffel" transform="translate(16 21) scale(.52)"/><use href="#yn-mobile-pagoda" transform="translate(314 34) scale(.47)"/></svg></div>
 </body></html>

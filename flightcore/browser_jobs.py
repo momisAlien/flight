@@ -24,7 +24,7 @@ def naver_key_or_none(label):
 
 
 class BrowserJobs:
-    def __init__(self, path, factory=BrowserCollector):
+    def __init__(self, path, factory=BrowserCollector, recover_interrupted=True):
         self.path, self.factory = path, factory
         self.lock = threading.Lock()
         self.thread = None
@@ -34,9 +34,10 @@ class BrowserJobs:
             db.execute('CREATE TABLE IF NOT EXISTS browser_runs(id TEXT PRIMARY KEY,provider TEXT,status TEXT,total INTEGER,detail TEXT)')
             db.execute('CREATE TABLE IF NOT EXISTS browser_tasks(run TEXT,n INTEGER,request TEXT,status TEXT,result TEXT,PRIMARY KEY(run,n))')
             db.execute('CREATE TABLE IF NOT EXISTS browser_details(run TEXT,n INTEGER,row INTEGER,status TEXT,result TEXT,PRIMARY KEY(run,n,row))')
-            db.execute("UPDATE browser_runs SET status='interrupted',detail='서버 종료로 중단' WHERE status IN ('running','running_details')")
-            db.execute("UPDATE browser_tasks SET status='interrupted' WHERE status='running'")
-            db.execute("UPDATE browser_details SET status='interrupted' WHERE status='running'")
+            if recover_interrupted:
+                db.execute("UPDATE browser_runs SET status='interrupted',detail='서버 종료로 중단' WHERE status IN ('running','running_details')")
+                db.execute("UPDATE browser_tasks SET status='interrupted' WHERE status='running'")
+                db.execute("UPDATE browser_details SET status='interrupted' WHERE status='running'")
 
     @contextmanager
     def db(self):

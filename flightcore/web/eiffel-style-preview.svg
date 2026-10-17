@@ -1,0 +1,51 @@
+<?xml-stylesheet type="text/css" href="eiffel-style-preview.css"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 800" role="img" aria-labelledby="title description">
+ <title id="title">여정노트 — 에펠탑 벡터 스타일 시안</title>
+ <desc id="description">외곽선 없이 기하학적인 면과 두 가지 건물 색으로 표현한 에펠탑. 세 단의 삼각 트러스, 하단 아치, 수면의 옅은 반사.</desc>
+ <defs>
+  <linearGradient id="sky" x2="0" y2="1"><stop stop-color="var(--sky-top)"/><stop offset="1" stop-color="var(--sky-bottom)"/></linearGradient>
+  <radialGradient id="warm"><stop stop-color="var(--peach)"/><stop offset="1" stop-color="var(--peach)" stop-opacity="0"/></radialGradient>
+  <linearGradient id="water" x2="0" y2="1"><stop stop-color="var(--sky-bottom)"/><stop offset="1" stop-color="var(--water)"/></linearGradient>
+  <linearGradient id="fade" x2="0" y2="1"><stop stop-color="var(--sky-bottom)"/><stop offset="1" stop-color="var(--sky-bottom)" stop-opacity="0"/></linearGradient>
+  <mask id="reflection-fade" maskUnits="userSpaceOnUse" x="0" y="650" width="1000" height="150" mask-type="alpha"><rect y="650" width="1000" height="150" fill="url(#fade)"/></mask>
+  <!-- Fill-only, reusable tower: two tones, three structural tiers. -->
+  <g id="eiffel">
+   <!-- Mast and lantern. -->
+   <path class="shade" d="M147 0h6v40h-6z"/>
+   <path class="light" d="m150 27 12 22h-24z"/>
+   <path class="light" d="M138 48h24v20h-24z"/>
+   <path class="shade" d="M150 48h12v20h-12z"/>
+   <!-- Tapering side rails. -->
+   <path class="light" d="M136 64h14l-25 136-28 110-40 124H25l53-135 32-110z"/>
+   <path class="shade" d="M150 64h14l26 125 32 110 53 135h-32l-40-124-28-110z"/>
+   <!-- Upper tier: crossed triangular braces. -->
+   <path class="light" d="m137 83 28 64-7 4-26-53z"/>
+   <path class="shade" d="m162 83-30 64 7 4 28-53z"/>
+   <path class="light" d="m129 149 49 47-6 8-47-43z"/>
+   <path class="shade" d="m171 149-49 47 6 8 47-43z"/>
+   <!-- Upper observation deck. -->
+   <path class="light" d="M110 200h80l7 13h-94z"/>
+   <path class="shade" d="M150 200h40l7 13h-47z"/>
+   <!-- Middle tier: a broad, open X. -->
+   <path class="light" d="m116 219 86 81-11 9-80-77z"/>
+   <path class="shade" d="m184 219-86 81 11 9 80-77z"/>
+   <!-- Lower observation deck. -->
+   <path class="light" d="M81 305h138l8 17H73z"/>
+   <path class="shade" d="M150 305h69l8 17h-77z"/>
+   <!-- Lower tier: cut-out arch; no opaque sky-coloured patch. -->
+   <path class="light" fill-rule="evenodd" d="M83 322h134l41 112h-31c-11-50-39-82-77-82s-66 32-77 82H42z M104 329l-8 19 40-19z M164 329l40 19-8-19z"/>
+   <path class="shade" d="M150 322h67l41 112h-31c-11-50-39-82-77-82z"/>
+   <!-- Ground-level plinths. -->
+   <path class="light" d="M20 429h59v11H20z"/>
+   <path class="shade" d="M221 429h59v11h-59z"/>
+  </g>
+ </defs>
+ <rect width="1000" height="800" fill="url(#sky)"/>
+ <ellipse cx="500" cy="602" rx="580" ry="240" fill="url(#warm)" opacity=".8"/>
+ <path d="M0 610Q120 556 230 594T458 583T688 598T1000 567V680H0Z" fill="var(--mountain)" opacity=".6"/>
+ <use href="#eiffel" transform="translate(350 210)"/>
+ <path d="M0 655q220-8 345-3 160-10 312 0 145-6 343 3v14H0Z" fill="var(--navy)" opacity=".65"/>
+ <rect y="660" width="1000" height="140" fill="url(#water)"/>
+ <g mask="url(#reflection-fade)" opacity=".25"><use href="#eiffel" transform="translate(350 1100) scale(1 -1)"/></g>
+ <g fill="var(--sky-bottom)" opacity=".65"><rect x="284" y="684" width="383" height="3" rx="1.5"/><rect x="410" y="709" width="284" height="2" rx="1"/><rect x="323" y="741" width="244" height="3" rx="1.5"/></g>
+</svg>

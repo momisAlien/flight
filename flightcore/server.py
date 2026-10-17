@@ -117,7 +117,7 @@ def create_app(db_path,lan=None):
         try:reference_count=sum(1 for _ in tasks(c))
         except ValueError:reference_count=None
         return {'browser_queries':estimate(c)['base_total_per_provider']*2,'reference_queries':reference_count,
-                'notice':'세 서비스를 순차 조회합니다. 왕복 상위20·편도 조합 상위20으로 표시. 마이리얼트립은 저장 왕복 참고가만 지원하며 지원하지 않는 조건은 건너뜁니다. 로그인·접근 제한 시 해당 공급사를 중단합니다.'}
+                'notice':'세 서비스를 동시에 조회합니다. 왕복 상위20·편도 조합 상위20으로 표시. 마이리얼트립은 저장 왕복 참고가만 지원하며 지원하지 않는 조건은 건너뜁니다. 로그인·접근 제한 시 해당 공급사를 중단합니다.'}
 
     @app.post('/api/combined-jobs')
     async def combined_start(request:Request):

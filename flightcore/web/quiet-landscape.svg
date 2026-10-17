@@ -1,0 +1,10 @@
+<svg id="skyline" class="quiet-desktop" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 240" preserveAspectRatio="xMidYMax meet" aria-hidden="true" focusable="false"><defs><linearGradient id="yn-landscape-base" x2="0" y2="1"><stop offset="0" stop-color="var(--land-mid)"/><stop offset=".72" stop-color="var(--land-mid)"/><stop offset="1" stop-color="var(--page-bottom)"/></linearGradient><linearGradient id="yn-landscape-shade" x2="0" y2="1"><stop stop-color="var(--land-near)"/><stop offset="1" stop-color="var(--page-bottom)"/></linearGradient>
+ <g id="yn-landscape-eiffel"><path d="M60 0 69 52 80 100 116 180H93L81 153Q60 118 39 153L27 180H4L40 100 51 52Z" fill="url(#yn-landscape-base)"/><path d="M60 0 69 52 80 100 116 180H93L81 153Q70 136 60 136Z" fill="url(#yn-landscape-shade)"/><path d="M40 97h40v4H40zM50 50h20v3H50z" fill="var(--land-near)"/></g>
+ <g id="yn-landscape-pagoda"><path d="M28 40h44v130H28z" fill="url(#yn-landscape-shade)"/><path d="M50 10 66 28H34zM34 40h32l17 10H17zM29 65h42l20 11H9zM24 92h52l21 12H3zM20 122h60l22 12H-2zM16 151h68l24 13H-8z" fill="url(#yn-landscape-base)"/></g></defs>
+ <path d="M-40 220Q100 190 250 218T570 223T940 224T1250 210T1640 218V240H-40Z" fill="var(--land-far)"/>
+ <use href="#yn-landscape-eiffel" transform="translate(42 38)"/>
+ <g class="quiet-clock" transform="translate(195 105)"><path d="M0 40h30v78H0zM-4 20h38v25H-4zM-4 20 15 0 34 20z" fill="url(#yn-landscape-base)"/><path d="M20 40h10v78H20zM15 0 34 20H15Z" fill="url(#yn-landscape-shade)"/><circle cx="15" cy="32" r="8" fill="var(--page-bottom)"/><path d="M14 26h2v7l5 3-1 2-6-4z" fill="var(--land-near)"/></g>
+ <g class="quiet-pyramids" opacity=".6"><path d="m1250 153-95 72h145z" fill="url(#yn-landscape-base)"/><path d="m1250 153 50 72h-20z" fill="url(#yn-landscape-shade)"/></g>
+ <use href="#yn-landscape-pagoda" transform="translate(1455 59) scale(.95)"/>
+ <path d="M-40 230Q100 219 260 231T610 233T1030 232T1400 227T1640 234V240H-40Z" fill="var(--page-bottom)"/>
+ </svg>

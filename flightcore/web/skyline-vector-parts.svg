@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" id="skyline" class="scenery-vector" viewBox="0 0 2400 800" preserveAspectRatio="xMidYMax slice" aria-hidden="true" focusable="false">
+ <defs>
+  <linearGradient id="mist-sky" x1="0" y1="0" x2="0" y2="1"><stop stop-color="var(--sky-top)" /><stop offset="1" stop-color="var(--sky-bottom)" /></linearGradient>
+  <radialGradient id="mist-glow"><stop stop-color="var(--glow-peach)" stop-opacity=".35" /><stop offset="1" stop-color="var(--glow-peach)" stop-opacity="0" /></radialGradient>
+  <linearGradient id="mist-light" x1="0" y1="0" x2="0" y2="1"><stop stop-color="var(--mid-light)" /><stop offset=".65" stop-color="var(--mid-light-fade)" /><stop offset="1" stop-color="var(--sky-bottom)" /></linearGradient>
+  <linearGradient id="mist-dark" x1="0" y1="0" x2="0" y2="1"><stop stop-color="var(--mid-dark)" /><stop offset=".65" stop-color="var(--mid-dark-fade)" /><stop offset="1" stop-color="var(--mid-dark-base)" /></linearGradient>
+  <linearGradient id="mist-band" x1="0" y1="0" x2="0" y2="1"><stop stop-color="var(--fog-white)" stop-opacity="0" /><stop offset=".5" stop-color="var(--fog-white)" stop-opacity=".55" /><stop offset="1" stop-color="var(--fog-white)" stop-opacity="0" /></linearGradient>
+  <filter id="mist-blur" x="-10%" y="-100%" width="120%" height="300%"><feGaussianBlur stdDeviation="14" /></filter>
+ <linearGradient id="mist-water" x2="0" y2="1"><stop stop-color="var(--sky-bottom)" /><stop offset="1" stop-color="var(--water)" /></linearGradient>
+ <linearGradient id="mist-reflect-fade" x2="0" y2="1"><stop stop-color="var(--fog-white)" /><stop offset="1" stop-color="var(--fog-white)" stop-opacity="0" /></linearGradient>
+ <mask id="mist-reflect-mask" maskUnits="userSpaceOnUse" x="0" y="640" width="2400" height="160" mask-type="alpha"><path d="M0 640h2400v160H0z" fill="url(#mist-reflect-fade)" /></mask>
+ <g id="mist-minaret"><path d="M-7 365h14v135H-7zM-11 362l11-12 11 12z" fill="url(#mist-light)" /><path d="M2 365h5v135H2z" fill="url(#mist-dark)" /></g>
+ </defs>
+ <path d="M0 0h2400v800H0z" fill="url(#mist-sky)" />
+ <ellipse cx="1250" cy="610" rx="1100" ry="170" fill="url(#mist-glow)" />
+ <g transform="translate(0 140)"><g class="mist-far" fill="var(--far-hill)" opacity=".7">
+  <path d="M-80 460Q110 365 320 416T720 414T1130 409T1540 420T1960 402T2480 445V510H-80Z" />
+  <path d="M-80 479Q180 421 410 456T850 447T1290 455T1750 441T2150 452T2480 463V510H-80Z" />
+ </g>
+ </g><g id="mist-landmarks" class="mist-mid">
+  <g id="mist-eiffel" transform="translate(240 640) scale(1.5789473684210527) translate(-260 -500)">
+   <path d="M260 120 274 205 298 330 350 500H314L296 450Q260 395 224 450L206 500H170L222 330 246 205Z" fill="url(#mist-light)" />
+   <path d="M260 120 274 205 298 330 350 500H314L296 450Q278 422.5 260 422.5Z" fill="url(#mist-dark)" />
+   <path d="M218 326h84v8h-84zM242 201h36v8h-36zM258.5 120h3v30h-3z" fill="url(#mist-dark)" />
+  </g>
+  <g id="mist-bigben" transform="translate(720 640) scale(1.5789473684210527) translate(-640 -500)">
+   <path d="M598 430h84v70h-84zM610 340h60v90h-60zM602 290h76v50h-76zM602 290l38-54 38 54z" fill="url(#mist-light)" />
+   <path d="M654 430h28v70h-28zM650 340h20v90h-20zM653 290h25v50h-25zM640 236l38 54h-38zM638.5 234h3v18h-3z" fill="url(#mist-dark)" />
+   <circle cx="640" cy="315" r="22" fill="var(--glow-peach)" opacity=".7" />
+   <path d="M639 301h2v15l9 6-1 2-10-7z" fill="url(#mist-dark)" />
+   <path d="M625 352h3v66h-3zM643 352h3v66h-3z" fill="url(#mist-dark)" opacity=".25" />
+  </g>
+  <g id="mist-taj" data-center-x="1100" data-top-y="290" transform="translate(1200 640) scale(1.619047619047619) translate(-1100 -500)">
+ <use href="#mist-minaret" x="1000" /><use href="#mist-minaret" x="1030" /><use href="#mist-minaret" x="1170" /><use href="#mist-minaret" x="1200" />
+ <path d="M1020 420h160v80h-160z" fill="url(#mist-light)" />
+ <path d="M1100 420h80v80h-80zM1078 500v-40q22-39 44 0v40z" fill="url(#mist-dark)" />
+ <path d="M1044 420C1027 370 1052 329 1100 302C1148 329 1173 370 1156 420Z" fill="url(#mist-light)" />
+ <path d="M1100 302C1148 329 1173 370 1156 420H1100Z" fill="url(#mist-dark)" />
+ <path d="M1098 290h4v19h-4zM1030 430a18 22 0 0 1 36 0zM1134 430a18 22 0 0 1 36 0z" fill="url(#mist-light)" />
+ </g>
+  <g id="mist-pyramids" data-center-x="1550" data-top-y="330" transform="translate(1680 640) scale(1.588235294117647) translate(-1550 -500)">
+ <path d="m1385 390-80 110h160zM1690 415l-63 85h126z" fill="url(#mist-light)" opacity=".6" />
+ <path d="m1550 330-110 170h110z" fill="url(#mist-light)" />
+ <path d="m1550 330 110 170h-110z" fill="url(#mist-dark)" />
+ <path d="m1550 330-110 170h110z" fill="var(--glow-peach)" opacity=".35" />
+ </g>
+  <g id="mist-pagoda" data-center-x="2080" data-top-y="250" transform="translate(2160 640) scale(1.6) translate(-2080 -500)">
+<path d="M2028.0 470h104.0v30h-104.0z" fill="url(#mist-dark)" />
+<path d="M1980.0 467L1990.0 477H2170.0L2180.0 467L2128.0 454H2032.0Z" fill="url(#mist-light)" />
+<path d="M1990.0 475h180v4h-180z" fill="var(--accent-teal)" opacity=".45" />
+<path d="M2035.8 430h88.4v30h-88.4z" fill="url(#mist-dark)" />
+<path d="M1995.0 427L2005.0 437H2155.0L2165.0 427L2120.8 414H2039.2Z" fill="url(#mist-light)" />
+<path d="M2005.0 435h150v4h-150z" fill="var(--accent-teal)" opacity=".45" />
+<path d="M2043.6 390h72.8v30h-72.8z" fill="url(#mist-dark)" />
+<path d="M2010.0 387L2020.0 397H2140.0L2150.0 387L2113.6 374H2046.4Z" fill="url(#mist-light)" />
+<path d="M2020.0 395h120v4h-120z" fill="var(--accent-teal)" opacity=".45" />
+<path d="M2051.4 350h57.2v30h-57.2z" fill="url(#mist-dark)" />
+<path d="M2025.0 347L2035.0 357H2125.0L2135.0 347L2106.4 334H2053.6Z" fill="url(#mist-light)" />
+<path d="M2035.0 355h90v4h-90z" fill="var(--accent-teal)" opacity=".45" />
+<path d="M2059.2 310h41.6v30h-41.6z" fill="url(#mist-dark)" />
+<path d="M2040.0 307L2050.0 317H2110.0L2120.0 307L2099.2 294H2060.8Z" fill="url(#mist-light)" />
+<path d="M2050.0 315h60v4h-60z" fill="var(--accent-teal)" opacity=".45" />
+<path d="M2078 250h4v40h-4z" fill="url(#mist-dark)" /></g>
+ </g>
+ <g transform="translate(0 140)"><g class="mist-fog mist-fog-one"><rect x="-100" y="410" width="2600" height="70" fill="url(#mist-band)" filter="url(#mist-blur)" /></g>
+ </g><g transform="translate(0 140)"><g class="mist-near"><path d="M-80 488C70 453 160 463 230 478S440 458 540 474S790 465 890 482S1160 455 1260 470S1490 463 1590 485S1820 455 1920 470S2140 462 2240 480S2390 462 2480 472V520H-80Z" fill="var(--near-hill)" opacity=".65" /><g fill="var(--accent-teal)">
+ <path d="M414 479v-40h4v40zM416 421q-22 21-12 29 12 12 25-2 8-11-13-27z" opacity=".72" />
+ <path d="M844 476v-53h4v53zM846 416l-17 27h9l-14 15h44l-14-15h9z" opacity=".82" />
+ <path d="M1274 475v-30h4v30zM1276 435q-25 4-12 22 14 11 23-6 6-13-11-16z" opacity=".7" />
+ <path d="M1482 485q12-40 9-74h5q1 40-8 74zM1493 411q-31-18-42 5 24-9 42-5zM1493 411q25-25 43-6-26-4-43 6zM1493 411q-25 1-26 23 14-16 26-23zM1493 411q31 0 32 24-15-18-32-24z" opacity=".78" />
+ <path d="M1858 474v-50h4v50zM1860 414q-28 24-12 36 21 16 29-6 3-15-17-30z" opacity=".88" />
+ </g></g>
+ </g><g transform="translate(0 140)"><g class="mist-fog mist-fog-two"><rect x="-100" y="470" width="2600" height="70" fill="url(#mist-band)" filter="url(#mist-blur)" opacity=".65" /></g>
+ </g><path d="M0 640h2400v160H0z" fill="url(#mist-water)" />
+ <g mask="url(#mist-reflect-mask)" opacity=".18"><g class="mist-reflection"><use href="#mist-landmarks" transform="translate(0 1280) scale(1 -1)" /></g></g>
+ <g fill="var(--fog-white)" opacity=".35"><rect class="mist-ripple ripple-a" x="170" y="678.4" width="320" height="2" /><rect class="mist-ripple ripple-b" x="940" y="720.0" width="500" height="2" /><rect class="mist-ripple ripple-c" x="1840" y="768.0" width="200" height="2" /></g>
+</svg>

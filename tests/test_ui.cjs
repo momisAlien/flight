@@ -357,3 +357,144 @@ test('price only summary compares raw search minima without seller detail reques
   assert.match(text,/조건부 할인 가격 포함/);
  }finally{u.dom.window.close();}
 });
+const simpleScript=fs.readFileSync(path.join(root,'simple-search.js'),'utf8');
+async function simpleMount(){
+ const u=await mount();
+ u.win.fetch=async url=>({ok:true,json:async()=>JSON.parse(fs.readFileSync(path.join(root,'airports.json'),'utf8'))});
+ vm.runInContext(simpleScript,u.dom.getInternalVMContext());
+ for(let i=0;i<12;i++)await Promise.resolve();
+ return u;
+}
+test('worldwide picker finds codes, English cities and Korean aliases across continents',async()=>{
+ const u=await simpleMount();try{
+  for(const [query,code] of [['파리','CDG'],['London','LHR'],['Sydney','SYD'],['JFK','JFK'],['Cairo','CAI'],['GRU','GRU']]){
+   u.get('airportSearch').value=query;u.get('airportSearch').oninput();
+   assert.ok(u.get('airportMatches').textContent.includes(code),query);
+  }
+  u.get('airportSearch').value='CDG';u.get('airportSearch').oninput();u.get('airportMatches').querySelector('button').click();
+  u.get('airportSearch').value='LHR';u.get('airportSearch').oninput();u.get('airportMatches').querySelector('button').click();
+  assert.equal(u.get('destinationCodes').value,'CDG,LHR');
+  u.get('destinationChips').querySelector('button').click();assert.equal(u.get('destinationCodes').value,'LHR');
+ }finally{u.dom.window.close();}
+});
+test('one submit uses edited conditions and combined endpoint without choosing a provider',async()=>{
+ const u=await simpleMount();try{
+  u.get('destinationCodes').value='CDG';u.get('start').value='2026-12-10';u.get('end').value='2026-12-11';
+  u.get('searchOutStart').value='22:00';u.get('searchOutEnd').value='06:00';
+  u.get('searchInStart').value='09:00';u.get('searchInEnd').value='18:00';
+  const calls=[];u.win.fetch=async(url,opts={})=>{calls.push({url,body:opts.body?JSON.parse(opts.body):null});return {ok:true,json:async()=>url==='/api/combined-plan'?{browser_queries:36,reference_queries:3}:url==='/api/combined-jobs'?{id:'simple'}:{status:'completed',providers:{naver:{status:'completed_observations'},google:{status:'completed_observations'},myrealtrip:{status:'completed_references'}},ranking:{notice:'test',roundtrips:[],oneway_combinations:[],roundtrip_total:0,oneway_total:0}}};};
+  await u.get('conditionsForm').onsubmit(new u.win.Event('submit',{cancelable:true}));
+  assert.equal(calls.filter(c=>c.url==='/api/combined-jobs').length,1);
+  assert.deepEqual(calls[1].body.conditions.destinations,['CDG']);assert.equal(calls[1].body.conditions.compare_oneways,true);
+  assert.deepEqual(calls[1].body.conditions.outbound_window,{start:'22:00',end:'06:00'});
+  assert.deepEqual(calls[1].body.conditions.inbound_window,{start:'09:00',end:'18:00'});
+  assert.equal(u.get('confirmDialog').open,false);assert.equal(u.get('quickSearch').disabled,false);
+  for(const name of ['네이버','Google','마이리얼트립'])assert.ok(u.get('combinedOutput').textContent.includes(name));
+  assert.equal(u.get('browserProvider').closest('details').open,false);
+  u.get('destinationCodes').value='ZZZ';await u.get('conditionsForm').onsubmit(new u.win.Event('submit',{cancelable:true}));assert.equal(calls.length,3);
+ }finally{u.dom.window.close();}
+});
+test('city groups select all airports, preserve prior choices and deduplicate',async()=>{
+ const u=await simpleMount();try{
+  const choose=query=>{u.get('airportSearch').value=query;u.get('airportSearch').oninput();u.get('airportMatches').querySelector('.airport-select-all').click();};
+  choose('도쿄');assert.equal(u.get('destinationCodes').value,'NRT,HND');
+  choose('Tokyo');assert.equal(u.get('destinationCodes').value,'NRT,HND');
+  choose('오사카');assert.equal(u.get('destinationCodes').value,'NRT,HND,KIX,UKB');
+  u.get('destinationChips').querySelector('[aria-label="HND 선택 해제"]').click();assert.equal(u.get('destinationCodes').value,'NRT,KIX,UKB');
+  choose('Osaka');assert.equal(u.get('destinationCodes').value,'NRT,KIX,UKB');
+  const calls=[];u.win.fetch=async(url,opts={})=>{calls.push({url,body:opts.body?JSON.parse(opts.body):null});return {ok:true,json:async()=>url==='/api/combined-plan'?{browser_queries:108,reference_queries:9}:url==='/api/combined-jobs'?{id:'group'}:{status:'completed',providers:{},ranking:{notice:'test',roundtrips:[],oneway_combinations:[],roundtrip_total:0,oneway_total:0}}};};
+  u.get('start').value='2026-12-10';u.get('end').value='2026-12-11';
+  await u.get('conditionsForm').onsubmit(new u.win.Event('submit',{cancelable:true}));
+  assert.deepEqual(calls.find(c=>c.url==='/api/combined-jobs').body.conditions.destinations,['NRT','KIX','UKB']);
+ }finally{u.dom.window.close();}
+});
+test('search status banner animates only while running and distinguishes partial or interrupted results',async()=>{
+ const u=await mount();try{
+  for(const [status,label,kind] of [['running','최저가 검색 중…','is-searching'],['completed','검색 완료','is-complete'],['completed_partial','검색 완료','is-complete'],['cancelled','검색 중단','is-warning'],['interrupted','검색이 중단되었습니다','is-warning'],['connection_error','진행 상태 연결 확인 중','is-warning']]){
+   u.win.showSearchState(status);const banner=u.get('searchState');assert.ok(banner.textContent.includes(label));assert.ok(banner.classList.contains(kind));assert.equal(!!banner.querySelector('[role=progressbar]'),status==='running');assert.equal(u.get('combinedOutput').getAttribute('aria-busy'),String(status==='running'));assert.equal(u.win.document.querySelectorAll('#searchState').length,1);
+  }
+ }finally{u.dom.window.close();}
+});
+test('startup prefers active server search over cancelled tab history and cancel targets active id',async()=>{
+ const u=await mount();try{
+  u.win.eval('combinedId="old-cancelled"');u.win.sessionStorage.setItem('combinedJob','old-cancelled');
+  const calls=[];u.win.fetch=async(url,opts={})=>{calls.push(url);return {ok:true,json:async()=>url==='/api/combined-history'?{items:[{id:'active-parallel',status:'running'},{id:'old-cancelled',status:'cancelled'}]}:{status:'running',providers:{naver:{status:'running'},google:{status:'running'}},ranking:{notice:'test',roundtrips:[],oneway_combinations:[],roundtrip_total:0,oneway_total:0}}};};
+  await u.win.initializeCombined();
+  assert.equal(u.win.sessionStorage.getItem('combinedJob'),'active-parallel');assert.equal(u.get('combinedCancel').disabled,false);assert.ok(u.get('searchState').textContent.includes('검색 중'));
+  await u.get('combinedCancel').onclick();assert.ok(calls.includes('/api/combined-jobs/active-parallel/cancel'));assert.ok(!calls.includes('/api/combined-jobs/old-cancelled'));
+ }finally{u.dom.window.close();}
+});
+test('busy start reconnects to active search instead of leaving an error on an old result',async()=>{
+ const u=await mount();try{
+  u.win.fetch=async(url)=>({ok:url!=='/api/combined-jobs',json:async()=>url==='/api/combined-plan'?{browser_queries:12}:url==='/api/combined-jobs'?{detail:'진행 중인 조회가 끝난 뒤 통합 검색을 시작하세요'}:url==='/api/combined-history'?{items:[{id:'active',status:'running'}]}:{status:'running',providers:{},ranking:{notice:'test',roundtrips:[],oneway_combinations:[],roundtrip_total:0,oneway_total:0}}});
+  await u.win.startCombined({destinations:['NRT']},true);
+  assert.equal(u.win.sessionStorage.getItem('combinedJob'),'active');assert.ok(u.get('searchState').classList.contains('is-searching'));assert.equal(u.get('combinedCancel').disabled,false);
+ }finally{u.dom.window.close();}
+});
+test('price cards expose observed carrier and local clocks without inventing missing return flights',async()=>{
+ const u=await mount();try{
+  const n={source:'naver',request:{kind:'roundtrip'},text:'최저가\n대한항공\n11:10UKB\n08:30CJJ\n+1일\n경유 2, 21시간 20분'};
+  assert.match(u.win.flightLines(n)[0],/대한항공.*UKB 11:10.*CJJ 08:30.*\+1일/);
+  assert.match(u.win.flightLines(n)[1],/오는 편.*미확인/);
+  const g={source:'google',request:{kind:'roundtrip',origin:'KIX',destination:'CJJ'},text:'최저가는 253146 대한민국 원입니다. Trinity Airways의 직항 항공편입니다. 목요일, 12월 24 오후 12:40에 간사이 국제공항에서 출발하여 목요일, 12월 24 오후 2:30에 청주국제공항에 도착합니다.'};
+  assert.match(u.win.flightLines(g)[0],/Trinity Airways.*12:40.*2:30/);assert.match(u.win.flightLines(g)[1],/미확인/);
+  assert.match(u.win.flightLines({source:'myrealtrip',text:'KE · 저장 참고 가격'})[0],/KE.*시각 미제공/);
+ }finally{u.dom.window.close();}
+});
+
+test('fixed dates submit one departure day and calendar-night difference; invalid dates do not send',async()=>{
+ const u=await simpleMount();try{
+  u.get('destinationCodes').value='NRT';u.get('start').value='2027-01-18';u.get('end').value='2027-01-20';u.get('nights').value='6';
+  u.get('dateModeFixed').click();assert.equal(u.get('start').disabled,true);assert.equal(u.get('departureDate').required,true);
+  u.get('departureDate').value='2028-02-28';u.get('returnDate').value='2028-03-01';
+  const calls=[];u.win.fetch=async(url,opts={})=>{calls.push({url,body:opts.body?JSON.parse(opts.body):null});return {ok:true,json:async()=>url==='/api/combined-plan'?{browser_queries:6,reference_queries:0}:url==='/api/combined-jobs'?{id:'fixed'}:{status:'completed',providers:{},ranking:{roundtrips:[],oneway_combinations:[]}}};};
+  await u.get('conditionsForm').onsubmit(new u.win.Event('submit',{cancelable:true}));
+  const sent=calls.find(c=>c.url==='/api/combined-jobs').body.conditions;
+  assert.equal(sent.start,'2028-02-28');assert.equal(sent.end,'2028-02-28');assert.equal(sent.nights,2);
+  const count=calls.length;
+  for(const bad of ['2028-02-27','2028-02-28','']){u.get('returnDate').value=bad;await u.get('conditionsForm').onsubmit(new u.win.Event('submit',{cancelable:true}));assert.equal(calls.length,count);}
+  u.get('dateModeRange').click();assert.equal(u.get('start').disabled,false);assert.equal(u.get('departureDate').disabled,true);assert.equal(u.get('start').value,'2027-01-18');assert.equal(u.get('end').value,'2027-01-20');assert.equal(u.get('nights').value,'6');
+  u.get('end').value='2026-01-01';await u.get('conditionsForm').onsubmit(new u.win.Event('submit',{cancelable:true}));assert.equal(calls.length,count);assert.match(u.get('message').textContent,/마지막 날/);
+ }finally{u.dom.window.close();}
+});
+
+test('ticket destination follows each outbound airport, including paired one ways and unknown codes',async()=>{
+ const u=await simpleMount();try{
+  const make=(destination)=>({source:'naver',amount:100,request:{kind:'roundtrip',origin:'ICN',destination,departure:'2027-01-18',return_date:'2027-01-24'},text:''});
+  for(const [code,name] of [['KIX','오사카'],['NRT','도쿄'],['HND','도쿄'],['CDG','파리'],['ZZZ','ZZZ']]){
+   const card=u.win.flightTicket(make(code),0);assert.equal(card.querySelector('.ticket-destination').textContent,name);assert.equal(card.querySelectorAll('.ticket-destination').length,1);
+  }
+  const card=u.win.flightTicket({kind:'two_oneways',amount:200,outbound:{...make('KIX'),request:{kind:'outbound',origin:'ICN',destination:'KIX',departure:'2027-01-18'}},inbound:{...make('ICN'),request:{kind:'inbound',origin:'KIX',destination:'ICN',departure:'2027-01-24'}}},0);
+  assert.equal(card.querySelector('.ticket-destination').textContent,'오사카');assert.equal(card.querySelectorAll('.ticket-destination').length,1);
+ }finally{u.dom.window.close();}
+});
+
+test('partial time range blocks submit and saved results explain exclusions',async()=>{
+ const u=await simpleMount();try{
+  u.get('destinationCodes').value='NRT';u.get('start').value='2027-01-18';u.get('end').value='2027-01-19';
+  u.get('searchOutStart').value='08:00';
+  const calls=[];u.win.fetch=async url=>{calls.push(url);return {ok:true,json:async()=>({status:'completed_partial',conditions:{origins:['ICN'],destinations:['NRT'],start:'2027-01-18',end:'2027-01-18',nights:6,outbound_window:{start:'08:00',end:'12:00'}},providers:{myrealtrip:{status:'setup_or_conditions_unsupported',notice:'출발일 범위 2일 이상 필요'}},ranking:{notice:'test',roundtrips:[],oneway_combinations:[],roundtrip_total:0,oneway_total:0,time_filter:{google:{outside:2,unknown:3}}}})};};
+  await u.get('conditionsForm').onsubmit(new u.win.Event('submit',{cancelable:true}));
+  assert.equal(calls.length,0);assert.match(u.get('message').textContent,/시작과 끝/);
+  u.win.eval('combinedId="saved"');await u.win.refreshCombined();
+  assert.match(u.get('combinedOutput').textContent,/2일 이상 필요/);
+  assert.match(u.get('combinedOutput').textContent,/시간대 밖 2개 · 시각 미확인 3개 제외/);
+  assert.match(u.get('combinedOutput').textContent,/가는 편 08:00~12:00/);
+ }finally{u.dom.window.close();}
+});
+
+test('city tabs switch independent rankings, preserve selection on polling and support keys',async()=>{
+ const u=await mount();try{
+  const city=(id,name,airports)=>({id,name,airports,roundtrips:[],oneway_combinations:[],roundtrip_total:0,oneway_total:0});
+  const state={status:'completed',providers:{},ranking:{notice:'test',cities:[city('tokyo','도쿄',['NRT','HND']),city('osaka','오사카',['KIX','UKB'])]}};
+  u.win.fetch=async()=>({ok:true,json:async()=>state});u.win.eval('combinedId="cities"');
+  await u.win.refreshCombined();
+  assert.match(u.get('cityResultPanel').textContent,/도쿄 · NRT · HND/);
+  u.get('cityResultTab1').click();assert.match(u.get('cityResultPanel').textContent,/오사카 · KIX · UKB/);
+  await u.win.refreshCombined();assert.equal(u.get('cityResultTab1').getAttribute('aria-selected'),'true');
+  u.get('cityResultTab1').dispatchEvent(new u.win.KeyboardEvent('keydown',{key:'ArrowLeft',bubbles:true}));
+  assert.equal(u.get('cityResultTab0').getAttribute('aria-selected'),'true');
+  state.ranking.cities=[city('osaka','오사카',['KIX'])];await u.win.refreshCombined();
+  assert.equal(u.win.document.querySelector('.city-result-tabs'),null);assert.match(u.get('cityResultPanel').textContent,/오사카/);
+ }finally{u.dom.window.close();}
+});

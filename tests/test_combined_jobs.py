@@ -1,5 +1,6 @@
 import json
 import tempfile
+import threading
 import unittest
 from datetime import date
 from unittest.mock import patch
@@ -21,7 +22,40 @@ class Collector:
 
 
 class CombinedJobsTests(unittest.TestCase):
-    def test_cancel_keeps_received_rows_and_does_not_start_next_supplier(self):
+    def test_three_providers_overlap_and_cancel_independently(self):
+        with tempfile.TemporaryDirectory() as folder:
+            entered={name:threading.Event() for name in ('naver','google','myrealtrip')}
+            release=threading.Event()
+            class BlockingCollector(Collector):
+                def collect(self,request):
+                    entered[self.provider].set()
+                    if not release.wait(5):raise RuntimeError('concurrent start timed out')
+                    return super().collect(request)
+            def calendar(*args):
+                entered['myrealtrip'].set()
+                if not release.wait(5):raise RuntimeError('concurrent start timed out')
+                return {'status':'no_cached_reference'}
+            path=folder+'/test.db';browser=BrowserJobs(path,factory=BlockingCollector);reference=ReferenceJobs(path)
+            jobs=CombinedJobs(path,browser,reference)
+            c=Conditions(('ICN',),('NRT',),date(2026,12,10),date(2026,12,11),5)
+            with patch('flightcore.myrealtrip.api_key',return_value='TEST'),patch('flightcore.myrealtrip.calendar',side_effect=calendar):
+                id=jobs.start(c)
+                try:
+                    for name,event in entered.items():self.assertTrue(event.wait(3),name+' never started concurrently')
+                    self.assertIsNot(browser.cancelled,jobs.google.cancelled)
+                    self.assertIsNot(browser.thread,jobs.google.thread)
+                    state=jobs.status(id)
+                    for name in entered:self.assertEqual(state['providers'][name]['status'],'running')
+                    jobs.cancel(id)
+                finally:
+                    release.set();jobs.thread.join(10)
+            self.assertFalse(jobs.thread.is_alive())
+            self.assertFalse(browser.thread.is_alive());self.assertFalse(jobs.google.thread.is_alive())
+            state=jobs.status(id)
+            self.assertEqual(state['status'],'cancelled')
+            self.assertGreaterEqual(state['ranking']['roundtrip_total'],2)
+
+    def test_cancel_keeps_received_rows_and_stops_active_suppliers(self):
         with tempfile.TemporaryDirectory() as folder:
             path=folder+'/test.db'
             class CancelCollector(Collector):
@@ -35,10 +69,10 @@ class CombinedJobsTests(unittest.TestCase):
                 id=jobs.start(c);jobs.thread.join(5)
             state=jobs.status(id)
             self.assertEqual(state['status'],'cancelled')
-            self.assertEqual(state['providers']['google']['status'],'pending')
-            self.assertEqual(state['ranking']['roundtrip_total'],1)
+            self.assertIn(state['providers']['google']['status'],('pending','cancelled'))
+            self.assertGreaterEqual(state['ranking']['roundtrip_total'],1)
             browser.factory=Collector
-            with patch.object(reference,'start',side_effect=ValueError('not configured')),patch.object(browser.cancelled,'wait',return_value=False):
+            with patch.object(reference,'start',side_effect=ValueError('not configured')),patch.object(browser.cancelled,'wait',return_value=False),patch.object(jobs.google.cancelled,'wait',return_value=False):
                 next_id=jobs.start(c);jobs.thread.join(5)
             self.assertNotEqual(id,next_id)
             self.assertEqual(jobs.status(id)['ranking'],state['ranking'])
@@ -50,7 +84,7 @@ class CombinedJobsTests(unittest.TestCase):
             path=folder+'/test.db';browser=BrowserJobs(path,factory=Collector);reference=ReferenceJobs(path)
             jobs=CombinedJobs(path,browser,reference)
             c=Conditions(('ICN',),('NRT',),date(2026,12,10),date(2026,12,11),5)
-            with patch.object(reference,'start',side_effect=ValueError('SECRET MUST NOT LEAK')),patch.object(browser.cancelled,'wait',return_value=False):
+            with patch.object(reference,'start',side_effect=ValueError('SECRET MUST NOT LEAK')),patch.object(browser.cancelled,'wait',return_value=False),patch.object(jobs.google.cancelled,'wait',return_value=False):
                 id=jobs.start(c);jobs.thread.join(10)
             self.assertFalse(jobs.thread.is_alive())
             state=jobs.status(id)

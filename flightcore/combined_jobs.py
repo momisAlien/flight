@@ -5,10 +5,21 @@ from uuid import uuid4
 from .serde import dumps,conditions_from_dict
 from .browser_prices import validate
 from .combined_prices import ranking
+from .browser_jobs import BrowserJobs
+from .reference_jobs import tasks as reference_tasks
+
+def reference_reason(c):
+    try:
+        list(reference_tasks(c))
+    except ValueError as error:
+        return str(error)  # Only local condition validation, never API exceptions.
+    return 'API 키 설정 또는 다른 참고가 조회의 실행 상태를 확인하세요.'
 
 class CombinedJobs:
     def __init__(self,path,browser,reference):
         self.path=path;self.browser=browser;self.reference=reference
+        # Independent browser/session/cancellation state; shared durable result store.
+        self.google=BrowserJobs(path,factory=lambda *args:browser.factory(*args),recover_interrupted=False)
         self.lock=threading.Lock();self.thread=None;self.cancelled=threading.Event()
         with self.db() as db:
             db.execute('CREATE TABLE IF NOT EXISTS combined_runs(id TEXT PRIMARY KEY,status TEXT,payload TEXT)')
@@ -24,7 +35,7 @@ class CombinedJobs:
     def start(self,c):
         validate(c,'naver');validate(c,'google')
         with self.lock:
-            if any(obj.thread and obj.thread.is_alive() for obj in (self,self.browser,self.reference)):
+            if any(obj.thread and obj.thread.is_alive() for obj in (self,self.browser,self.google,self.reference)):
                 raise ValueError('진행 중인 조회가 끝난 뒤 통합 검색을 시작하세요')
             self.cancelled.clear();id=uuid4().hex
             payload={'conditions':json.loads(dumps(c)),'providers':{name:{'status':'pending'} for name in ('naver','google','myrealtrip')}}
@@ -37,24 +48,29 @@ class CombinedJobs:
 
     def run(self,id,c,payload):
         final='completed'
-        for name in ('myrealtrip','naver','google'):
+        active={}
+        for name,child in (('naver',self.browser),('google',self.google),('myrealtrip',self.reference)):
             if self.cancelled.is_set():final='cancelled';break
-            child=self.reference if name=='myrealtrip' else self.browser
             try:
                 run=child.start(c) if name=='myrealtrip' else child.start(c,name)
+                active[name]=(child,run)
                 payload['providers'][name]={'id':run,'status':'running'};self.save(id,'running',payload)
-                while child.thread.is_alive():
-                    child.thread.join(.25)
-                    if self.cancelled.is_set():
-                        if name=='myrealtrip':child.cancelled.set()
-                        else:child.cancel(run)
-                state=child.status(run);payload['providers'][name]['status']=state['status']
-                if state['status'] not in ('completed_references','completed_observations'):final='completed_partial'
             except ValueError:
-                payload['providers'][name]={'status':'setup_or_conditions_unsupported','notice':'API 설정 또는 이 서비스의 날짜·숙박 조건 지원 여부를 확인하세요'};final='completed_partial'
+                payload['providers'][name]={'status':'setup_or_conditions_unsupported','notice':reference_reason(c) if name=='myrealtrip' else '조회 설정 또는 다른 검색의 실행 상태를 확인하세요.'};final='completed_partial'
             except Exception:
                 payload['providers'][name]={'status':'provider_error','notice':'공급사 조회 실행 실패 · 인증정보를 포함할 수 있는 원본 오류는 기록하지 않음'};final='completed_partial'
             self.save(id,'running',payload)
+        while active:
+            # Signal all collectors before waiting for any one of them to exit.
+            if self.cancelled.is_set():
+                for child,run in active.values():child.cancelled.set()
+            for name,(child,run) in list(active.items()):
+                child.thread.join(.1)
+                if child.thread.is_alive():continue
+                state=child.status(run);payload['providers'][name]['status']=state['status']
+                if state['status'] not in ('completed_references','completed_observations'):final='completed_partial'
+                del active[name]
+                self.save(id,'running',payload)
         if self.cancelled.is_set():final='cancelled'
         self.save(id,final,payload)
 
@@ -74,6 +90,8 @@ class CombinedJobs:
             if not row:raise ValueError('통합 조회 작업이 없습니다')
             payload=json.loads(row[1]);tasks={};references=[]
             for name,provider in payload['providers'].items():
+                if name=='myrealtrip' and provider['status']=='setup_or_conditions_unsupported':
+                    provider['notice']=reference_reason(conditions_from_dict(payload['conditions']))
                 if not provider.get('id'):continue
                 if name=='myrealtrip':
                     state=self.reference.status(provider['id']);references=state['results']
