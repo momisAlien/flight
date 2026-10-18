@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "services": {
-    "runtime-check": {"root": "deploy/vercel-probe/", "framework": null}
+    "runtime-check": {"root": "deploy/vercel-probe/"}
   },
   "rewrites": [
     {"source": "/(.*)", "destination": {"service": "runtime-check"}}
