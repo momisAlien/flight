@@ -1,9 +1,13 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "services": {
-    "runtime-check": {"root": "deploy/vercel-probe/"}
-  },
-  "rewrites": [
-    {"source": "/(.*)", "destination": {"service": "runtime-check"}}
-  ]
+  "framework": null,
+  "installCommand": "npm ci --prefix deploy/vercel-probe --omit=dev",
+  "buildCommand": "node tools/build_vercel_probe.cjs",
+  "outputDirectory": "probe-dist",
+  "functions": {
+    "api/browser.mjs": {
+      "maxDuration": 30,
+      "includeFiles": "deploy/vercel-probe/node_modules/@sparticuz/chromium/bin/**"
+    }
+  }
 }

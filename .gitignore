@@ -12,6 +12,7 @@ node_modules/
 .test-tmp/
 
 .vercel/
+probe-dist/
 *.log
 *.zip
 /*-2026*.json

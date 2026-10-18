@@ -6,7 +6,9 @@ No personal DB, provider key, search history or flight prices are included.
 
 2026-10-18: actual dashboard confirms Hobby; production commit d80173c failed with
 FASTAPI_ENTRYPOINT_NOT_FOUND. Framework FastAPI, root directory empty, Node 24.
-Root vercel.json on this branch deliberately routes to this separate service.
+Root vercel.json on this branch explicitly builds the isolated page and Node function.
+The Services beta configuration produced an empty output on this project; the
+verified fallback uses ordinary Vercel Functions and an explicit output directory.
 The local flexible-flights app and remote main remain unchanged.
 
 ## Checks
