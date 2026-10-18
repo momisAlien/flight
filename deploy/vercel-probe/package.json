@@ -1,0 +1,11 @@
+{
+  "name": "journey-note-vercel-probe",
+  "private": true,
+  "type": "module",
+  "engines": {"node": "24.x"},
+  "scripts": {"test": "node --test test/*.test.mjs"},
+  "dependencies": {
+    "@sparticuz/chromium": "153.0.0",
+    "puppeteer-core": "25.11.0"
+  }
+}

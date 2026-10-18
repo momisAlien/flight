@@ -1,0 +1,49 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {createHandler, probeBrowser} from '../lib/probe.mjs';
+const token = 'test-only-'.repeat(4);
+const env = {FLIGHT_PROBE_TOKEN: token, FLIGHT_PROBE_ENABLED: '1'};
+const request = () => ({method: 'POST', headers: {authorization: `Bearer ${token}`}});
+const response = () => ({headers: {}, setHeader(k,v) {this.headers[k]=v;},
+  status(code) {this.code=code;return this;}, json(body) {this.body=body;return this;}});
+
+test('disabled, unauthenticated and GET requests never launch Chrome', async () => {
+  let calls = 0;
+  const run = async () => {calls++;};
+  for (const [settings,req,expected] of [
+    [{},request(),503], [env,{method:'GET',headers:{}},405],
+    [env,{method:'POST',headers:{}},401],
+    [env,{method:'POST',headers:{authorization:'Bearer wrong'}},401]
+  ]) {
+    const res=response(); await createHandler(run,settings)(req,res);
+    assert.equal(res.code,expected);
+  }
+  assert.equal(calls,0);
+});
+test('success is explicitly not flight verification', async () => {
+  const res=response();
+  await createHandler(async()=>({title:'Journey Note browser probe',version:'test'}),env)(request(),res);
+  assert.equal(res.code,200);assert.equal(res.body.flight_search_verified,false);
+  assert.equal(res.headers['Cache-Control'],'no-store');
+});
+test('failure hides details and releases the busy guard', async () => {
+  const handler=createHandler(async()=>{throw Error('private-secret');},env);
+  for (let i=0;i<2;i++) {
+    const res=response();await handler(request(),res);
+    assert.equal(res.code,502);assert.ok(!JSON.stringify(res.body).includes('private-secret'));
+  }
+});
+test('concurrent requests within an instance are rejected', async () => {
+  let finish;
+  const handler=createHandler(()=>new Promise(resolve=>{finish=resolve;}),env);
+  const first=handler(request(),response()); const second=response();
+  await handler(request(),second); assert.equal(second.code,409);
+  finish({title:'Journey Note browser probe',version:'test'}); await first;
+});
+test('browser is closed even if rendering fails', async () => {
+  let closed=false;
+  const browser={newPage:async()=>{throw Error('render error');},close:async()=>{closed=true;}};
+  await assert.rejects(probeBrowser({defaultArgs:x=>x.args,launch:async()=>browser},
+    {args:[],executablePath:async()=>'/test'}));
+  assert.equal(closed,true);
+});
