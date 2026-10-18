@@ -5,8 +5,8 @@
   "buildCommand": "node tools/build_vercel_probe.cjs",
   "outputDirectory": "probe-dist",
   "functions": {
-    "api/browser.mjs": {
-      "maxDuration": 30,
+    "api/*.mjs": {
+      "maxDuration": 90,
       "includeFiles": "deploy/vercel-probe/node_modules/@sparticuz/chromium/bin/**"
     }
   }

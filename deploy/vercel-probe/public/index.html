@@ -4,8 +4,15 @@
 <main><h1>여정노트 · 실행 환경 검증</h1>
 <p>Vercel에서 브라우저 실행 가능 여부를 확인하는 별도 검증 앱입니다.</p>
 <p>항공권 검색과 가격 비교는 아직 연결되지 않았습니다.</p>
-<p>이 Preview는 Vercel 팀 로그인으로 보호됩니다. 항공권 사이트에는 접속하지 않습니다.</p>
+<p>이 Preview는 Vercel 팀 로그인으로 보호됩니다. 아래 버튼은 공개 항공권 검색을 각 한 조건만 조회합니다.</p>
 <p>2026-10-18 검증 완료: HeadlessChrome/153.0.8010.0 · 2,827ms. 실제 항공권 조회는 미검증입니다.</p>
 <button id="check" type="button" disabled>검증 완료 · 추가 실행 중지</button>
 <pre id="result" aria-live="polite">위 수치는 기록된 검증 결과입니다. 현재 실행 중인 작업은 없습니다.</pre>
+<h2>실제 표시가 조회 검증</h2>
+<p>인천 ICN → 나리타 NRT · 2027-01-18 ~ 2027-01-24 · 성인 1명 · 일반석 · 왕복</p>
+<p>로그인·CAPTCHA·접근 제한에서는 중단합니다. 표시가이며 확정 결제금액이 아닙니다.</p>
+<button type="button" data-provider="naver">네이버 한 조건 조회</button>
+<pre id="naver-result" aria-live="polite">미실행</pre>
+<button type="button" data-provider="google">Google 한 조건 조회</button>
+<pre id="google-result" aria-live="polite">미실행</pre>
 <script src="/probe.js" defer></script></main></html>

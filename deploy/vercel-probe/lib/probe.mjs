@@ -3,7 +3,7 @@ import {createHash, timingSafeEqual} from 'node:crypto';
 const digest = value => createHash('sha256').update(value).digest();
 
 // Never accept a target URL or user HTML: this endpoint only renders a constant page.
-export function createHandler(runBrowser, env = process.env, now = Date.now) {
+export function createHandler(runBrowser, env = process.env, now = Date.now, kind = 'runtime') {
   let busy = false;
   let cached;
   return async (req, res) => {
@@ -38,6 +38,10 @@ export function createHandler(runBrowser, env = process.env, now = Date.now) {
     const start = Date.now();
     try {
       const result = await runBrowser();
+      if (kind === 'provider') {
+        cached = {...result, elapsed_ms: Date.now() - start, flight_search_verified: false};
+        return res.status(200).json(cached);
+      }
       if (result.title !== 'Journey Note browser probe') throw new Error('Unexpected title');
       cached = {ok: true, browser: result.version,
         elapsed_ms: Date.now() - start, flight_search_verified: false};
@@ -53,7 +57,7 @@ export function createHandler(runBrowser, env = process.env, now = Date.now) {
   };
 }
 
-export async function probeBrowser(puppeteer, chromium) {
+export async function probeBrowser(puppeteer, chromium, inspect = null) {
   let browser;
   try {
     browser = await puppeteer.launch({
@@ -63,6 +67,7 @@ export async function probeBrowser(puppeteer, chromium) {
       defaultViewport: {width: 800, height: 600}
     });
     const page = await browser.newPage();
+    if (inspect) return await inspect(page);
     await page.setRequestInterception(true);
     page.on('request', request => request.abort());
     await page.setContent('<!doctype html><title>Journey Note browser probe</title><p>Browser ready</p>',
