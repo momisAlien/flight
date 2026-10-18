@@ -41,13 +41,14 @@ test('concurrent requests within an instance are rejected', async () => {
   finish({title:'Journey Note browser probe',version:'test'}); await first;
 });
 test('browser is closed even if rendering fails', async () => {
-  let closed=false;
+  let closed=false, launchArgs;
   const browser={newPage:async()=>{throw Error('render error');},close:async()=>{closed=true;}};
   await assert.rejects(probeBrowser({defaultArgs:async x=>x.args,launch:async options=>{
-    assert.ok(Array.isArray(options.args));return browser;
+    launchArgs=options.args;return browser;
   }},
     {args:[],executablePath:async()=>'/test'}));
   assert.equal(closed,true);
+  assert.ok(Array.isArray(launchArgs));
 });
 test('protected preview is restricted by environment, branch, date and same origin', async () => {
   const settings = {FLIGHT_PROTECTED_PREVIEW:'1',VERCEL:'1',VERCEL_ENV:'preview',
