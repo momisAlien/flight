@@ -35,6 +35,7 @@ export async function inspectProvider(page,provider) {
     notice:'현재 보이는 표시가만 확인. 최종 결제금액·전체 항공편·시간 필터는 미검증.'};
   let blockedNavigation=false;
   let denied=false;
+  let upstreamUnavailable=false;
   const network={started:0,finished:0,failed:[],http_errors:[]};
   const safeAddress=url=>{try{const p=new URL(url);return {host:p.hostname,path:p.pathname.slice(0,160)};}catch{return {host:'unknown'};}};
   page.on('requestfailed',request=>{
@@ -49,6 +50,8 @@ export async function inspectProvider(page,provider) {
       if (response.status()>=400 && network.http_errors.length<12) network.http_errors.push({...address,status:response.status()});
       if (/(^|\.)naver\.com$|(^|\.)google\.com$/.test(address.host)
           && [401,403,429].includes(response.status())) denied=true;
+      if (address.host==='flight-api.naver.com' && response.status()>=500
+          && ['/flight/international/searchFlights','/graphql'].includes(address.path)) upstreamUnavailable=true;
     }
   });
   await page.setRequestInterception(true);
@@ -71,6 +74,8 @@ export async function inspectProvider(page,provider) {
   const deadline=Date.now()+45000;
   let previous='',stable=0,lastBody='';
   while (Date.now()<deadline) {
+    if (upstreamUnavailable) return {...base,status:'upstream_unavailable',
+      reason:'가격 서버 5xx 응답. 추가 조회 없이 중단',network,observations:[]};
     let snapshot;
     try {
       snapshot=await page.evaluate(({selector,provider})=>{

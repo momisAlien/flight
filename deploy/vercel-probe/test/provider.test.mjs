@@ -27,3 +27,16 @@ test('HTTP access denial stops immediately without parsing or retry',async()=>{
   assert.equal(result.status,'access_stopped');assert.deepEqual(result.observations,[]);
   assert.equal(navigations,1);
 });
+test('Naver price-server 503 stops before reading cards',async()=>{
+  const events={};
+  let reads=0;
+  const page={setRequestInterception:async()=>{},on:(name,callback)=>{events[name]=callback;},
+    goto:async()=>{
+      events.response({request:()=>({resourceType:()=>'fetch'}),
+        url:()=>'https://flight-api.naver.com/flight/international/searchFlights',status:()=>503});
+      return {status:()=>200};
+    },evaluate:async()=>{reads++;throw Error('must not read');}};
+  const result=await inspectProvider(page,'naver');
+  assert.equal(result.status,'upstream_unavailable');assert.equal(reads,0);
+  assert.equal(result.network.http_errors[0].status,503);
+});
