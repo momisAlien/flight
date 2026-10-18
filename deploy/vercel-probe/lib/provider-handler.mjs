@@ -5,5 +5,5 @@ export function providerHandler(provider) {
     const [{default:puppeteer},{default:chromium}]=await Promise.all([
       import('puppeteer-core'),import('@sparticuz/chromium')]);
     return probeBrowser(puppeteer,chromium,page=>inspectProvider(page,provider));
-  },{...process.env,FLIGHT_PROTECTED_PREVIEW:'1'},Date.now,'provider');
+  },{...process.env,FLIGHT_PROTECTED_PREVIEW:provider==='naver'?'1':'0'},Date.now,'provider');
 }

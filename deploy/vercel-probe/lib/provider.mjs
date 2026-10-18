@@ -34,8 +34,26 @@ export async function inspectProvider(page,provider) {
     observed_at:new Date().toISOString(),inventory_complete:false,
     notice:'현재 보이는 표시가만 확인. 최종 결제금액·전체 항공편·시간 필터는 미검증.'};
   let blockedNavigation=false;
+  let denied=false;
+  const network={started:0,finished:0,failed:[],http_errors:[]};
+  const safeAddress=url=>{try{const p=new URL(url);return {host:p.hostname,path:p.pathname.slice(0,160)};}catch{return {host:'unknown'};}};
+  page.on('requestfailed',request=>{
+    if (network.failed.length<12) network.failed.push({...safeAddress(request.url()),type:request.resourceType(),
+      error:request.failure()?.errorText || 'unknown'});
+  });
+  page.on('response',response=>{
+    const request=response.request();
+    const address=safeAddress(response.url());
+    if (['xhr','fetch'].includes(request.resourceType())) {
+      network.finished++;
+      if (response.status()>=400 && network.http_errors.length<12) network.http_errors.push({...address,status:response.status()});
+      if (/(^|\.)naver\.com$|(^|\.)google\.com$/.test(address.host)
+          && [401,403,429].includes(response.status())) denied=true;
+    }
+  });
   await page.setRequestInterception(true);
   page.on('request',request=>{
+    if (['xhr','fetch'].includes(request.resourceType())) network.started++;
     if (request.isNavigationRequest() && request.frame()===page.mainFrame()
         && accessBlocked(provider,request.url(),'')) {
       blockedNavigation=true;
@@ -50,7 +68,7 @@ export async function inspectProvider(page,provider) {
     return {...base,status:'access_stopped',reason:'로그인·접근 제한에서 중단',observations:[]};
   }
   if (response && response.status()>=400) return {...base,status:'http_error',http_status:response.status(),observations:[]};
-  const deadline=Date.now()+30000;
+  const deadline=Date.now()+45000;
   let previous='',stable=0,lastBody='';
   while (Date.now()<deadline) {
     let snapshot;
@@ -65,8 +83,8 @@ export async function inspectProvider(page,provider) {
       },{selector:source.selector,provider});
     } catch {return {...base,status:'page_unreadable',observations:[]};}
     lastBody=snapshot.body;
-    if (blockedNavigation || accessBlocked(provider,page.url(),lastBody,snapshot.challenge)) {
-      return {...base,status:'access_stopped',reason:'로그인·CAPTCHA·접근 제한에서 중단',observations:[]};
+    if (denied || blockedNavigation || accessBlocked(provider,page.url(),lastBody,snapshot.challenge)) {
+      return {...base,status:'access_stopped',reason:'로그인·CAPTCHA·접근 제한에서 중단',network,observations:[]};
     }
     if (/죄송합니다. 오류가 발생했습니다./.test(lastBody)) return {...base,status:'provider_error',observations:[]};
     const serialized=JSON.stringify(snapshot.rows);
@@ -82,5 +100,5 @@ export async function inspectProvider(page,provider) {
   }
   return {...base,status:'unverified_response',navigation_error:navigationError,
     reason:'제한 시간 안에 가격 카드를 확인하지 못함. 항공편 없음으로 간주하지 않음.',
-    observations:[],page_excerpt:lastBody.slice(0,1500)};
+    observations:[],network,page_excerpt:lastBody.slice(0,1500)};
 }
