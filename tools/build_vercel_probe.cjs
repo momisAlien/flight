@@ -4,4 +4,5 @@ const root = path.resolve(__dirname, '..');
 const output = path.join(root, 'probe-dist');
 fs.mkdirSync(output, {recursive: true});
 fs.copyFileSync(path.join(root, 'deploy/vercel-probe/public/index.html'), path.join(output, 'index.html'));
+fs.copyFileSync(path.join(root, 'deploy/vercel-probe/public/probe.js'), path.join(output, 'probe.js'));
 console.log('Runtime verification page built; flight search remains unconnected.');

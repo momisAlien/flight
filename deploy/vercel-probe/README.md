@@ -30,6 +30,14 @@ Preview URL is supplied by Vercel after deployment; no local server is started h
 
 ## Actual browser execution gate
 
+2026-10-18: dashboard verified Vercel Authentication / Require Log In enabled,
+Standard Protection, no domain exceptions. A same-origin button can run the fixed
+page test ONLY on preview branch codex/vercel-runtime-check until 2026-10-19 00:00
+KST. No authentication setting was disabled. This path relies on existing Vercel
+team authentication; it must never be reused with public/unprotected previews.
+Successful results are cached per instance. It does not provide a global quota.
+After that deadline the explicit token mode below is required.
+
 After confirming Hobby and remaining usage in the dashboard, configure Preview-only
 FLIGHT_PROBE_ENABLED=1 and a random FLIGHT_PROBE_TOKEN of at least 32 characters.
 Never commit or paste the token in chat. POST /api/browser with Authorization:

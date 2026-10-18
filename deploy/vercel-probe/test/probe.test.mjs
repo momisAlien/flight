@@ -47,3 +47,24 @@ test('browser is closed even if rendering fails', async () => {
     {args:[],executablePath:async()=>'/test'}));
   assert.equal(closed,true);
 });
+test('protected preview is restricted by environment, branch, date and same origin', async () => {
+  const settings = {FLIGHT_PROTECTED_PREVIEW:'1',VERCEL:'1',VERCEL_ENV:'preview',
+    VERCEL_GIT_COMMIT_REF:'codex/vercel-runtime-check',VERCEL_URL:'test.vercel.app'};
+  const req={method:'POST',headers:{origin:'https://test.vercel.app',
+    'x-flight-probe':'runtime-check','sec-fetch-site':'same-origin'}};
+  let calls=0;
+  const run=async()=>{calls++;return {title:'Journey Note browser probe',version:'test'};};
+  const clock=()=>Date.parse('2026-10-18T10:00:00+09:00');
+  const handler=createHandler(run,settings,clock);
+  for (let i=0;i<2;i++) {const res=response();await handler(req,res);assert.equal(res.code,200);}
+  assert.equal(calls,1);
+  for (const override of [{VERCEL_ENV:'production'},{VERCEL_GIT_COMMIT_REF:'main'},{VERCEL:'0'}]) {
+    const res=response();await createHandler(run,{...settings,...override},clock)(req,res);
+    assert.equal(res.code,503);
+  }
+  const cross=response();await createHandler(run,settings,clock)(
+    {...req,headers:{...req.headers,origin:'https://evil.example'}},cross);
+  assert.equal(cross.code,401);
+  const expired=response();await createHandler(run,settings,()=>Date.parse('2026-10-20'))(req,expired);
+  assert.equal(expired.code,503);assert.equal(calls,1);
+});
