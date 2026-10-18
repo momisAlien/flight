@@ -42,7 +42,9 @@ export function createHandler(runBrowser, env = process.env, now = Date.now) {
       cached = {ok: true, browser: result.version,
         elapsed_ms: Date.now() - start, flight_search_verified: false};
       return res.status(200).json(cached);
-    } catch {
+    } catch (error) {
+      // The probe accepts no user content or URLs. Diagnostics stay in protected logs.
+      console.error('runtime-probe:', String(error?.message || 'unknown').slice(0, 1600));
       // Do not return stack traces, filesystem paths, or environment values.
       return res.status(502).json({error: 'BROWSER_PROBE_FAILED', flight_search_verified: false});
     } finally {
