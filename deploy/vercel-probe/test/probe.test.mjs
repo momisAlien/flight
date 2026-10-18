@@ -43,7 +43,9 @@ test('concurrent requests within an instance are rejected', async () => {
 test('browser is closed even if rendering fails', async () => {
   let closed=false;
   const browser={newPage:async()=>{throw Error('render error');},close:async()=>{closed=true;}};
-  await assert.rejects(probeBrowser({defaultArgs:x=>x.args,launch:async()=>browser},
+  await assert.rejects(probeBrowser({defaultArgs:async x=>x.args,launch:async options=>{
+    assert.ok(Array.isArray(options.args));return browser;
+  }},
     {args:[],executablePath:async()=>'/test'}));
   assert.equal(closed,true);
 });

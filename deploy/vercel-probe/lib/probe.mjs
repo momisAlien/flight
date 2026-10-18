@@ -57,7 +57,7 @@ export async function probeBrowser(puppeteer, chromium) {
   let browser;
   try {
     browser = await puppeteer.launch({
-      args: puppeteer.defaultArgs({args: chromium.args, headless: 'shell'}),
+      args: await puppeteer.defaultArgs({args: chromium.args, headless: 'shell'}),
       executablePath: await chromium.executablePath(),
       headless: 'shell', timeout: 12000, protocolTimeout: 5000,
       defaultViewport: {width: 800, height: 600}
