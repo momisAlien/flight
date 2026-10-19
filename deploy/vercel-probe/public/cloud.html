@@ -1,0 +1,14 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>여정노트 · 어디서나 가격 비교</title><link rel="icon" href="/favicon.svg"><link rel="stylesheet" href="/cloud.css"></head>
+<body><header><span class="eyebrow">JOURNEY NOTE / CLOUD</span><h1>여정노트</h1><p>유연한 날짜, 도시별 최저 표시가.</p></header><main>
+<form id="searchForm" class="panel"><h2>여행 조건</h2><fieldset id="controls"><legend class="sr">검색 조건</legend>
+<label>출발 공항</label><div id="origins" class="chips"></div>
+<label for="airport">목적지 · 전 세계 공항</label><input id="airport" placeholder="도시명 또는 공항 코드" autocomplete="off"><div id="suggestions"></div><div id="destinations" class="chips"></div>
+<label for="mode">날짜 선택 방식</label><select id="mode"><option value="range">출발일 범위 · 박수</option><option value="exact">가는 날 · 오는 날</option></select>
+<div class="two"><label><span id="startLabel">출발 가능 시작일</span><input id="start" type="date" required></label><label><span id="endLabel">출발 가능 마지막 날</span><input id="end" type="date" required></label></div>
+<label id="nightsLabel">숙박일수<input id="nights" type="number" min="1" max="60" value="3" required></label>
+<label class="check"><input id="pairs" type="checkbox" checked> 편도 2장 조합도 비교</label>
+<details><summary>출발 시간대 · 현지 시각</summary><p>시간이 확인된 후보만 남깁니다. Google 왕복의 귀국편 시각은 확인되지 않아 귀국 시간대 지정 시 제외됩니다.</p><label>가는 편</label><div class="two"><input aria-label="가는 편 시작 시각" id="outStart" type="time"><input aria-label="가는 편 마지막 시각" id="outEnd" type="time"></div><label>오는 편</label><div class="two"><input aria-label="오는 편 시작 시각" id="inStart" type="time"><input aria-label="오는 편 마지막 시각" id="inEnd" type="time"></div></details>
+<small>성인 1명 · 일반석 · 수하물/좌석 조건 미비교</small><button id="startSearch" class="primary" type="submit">최저가 검색</button></fieldset></form>
+<section class="panel results"><h2>최저가 비교</h2><p class="muted">Google · 네이버 · 마이리얼트립</p><div class="actions"><button id="stop" disabled>검색 중단</button><button id="resume" disabled>미조회 조건 이어서</button><button id="history">최근 검색</button></div>
+<div id="status" role="status" aria-live="polite">여행 조건을 선택해 주세요.</div><progress id="progress" value="0" max="1" hidden></progress><p id="searchConditions"></p><div id="providers"></div><div id="tabs" class="tabs" role="tablist" aria-label="목적지 도시"></div><div id="results"></div>
+<details class="notes"><summary>가격과 서비스 안내</summary><p>현재 화면에서 읽은 표시가를 비교합니다. Google 왕복은 ‘최저 ~원’ 후보이며 오는 편과 최종 결제금액은 원본에서 확인하세요. 전체 항공편의 최저가를 보장하지 않습니다.</p><p>네이버는 Vercel에서 가격 서버 503 응답이 확인됐습니다. 오류·접근 제한 시 해당 서비스의 나머지 조회를 중단합니다. 마이리얼트립은 서버 API 키가 필요하며 저장 참고가만 제공합니다.</p><p>무료 한도 내에서 이용하며, 한도를 모두 쓰면 Vercel에서 중단될 수 있습니다. 검색 중에는 탭을 열어 두세요. 기록은 이 브라우저에만 저장되며 기기 간 동기화되지 않습니다. 중단 시 이미 실행 중인 한 건은 최대 90초 안에 정리됩니다.</p></details></section></main><footer>Vercel 서버에서 조회 · 로컬 PC 서버 불필요 · 개인용 보호된 미리보기</footer><script type="module" src="/cloud.mjs"></script></body></html>

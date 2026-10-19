@@ -27,10 +27,10 @@ export function parsePrice(provider,text) {
     conditional:provider==='naver'?!text.includes('성인/모든 결제수단'):null,
     comparison_eligible:false};
 }
-export async function inspectProvider(page,provider) {
-  const source=SOURCES[provider];
+export async function inspectProvider(page,provider,condition=CONDITION,url=null) {
+  const source={...SOURCES[provider],url:url||SOURCES[provider]?.url};
   if (!source) throw Error('Unsupported provider');
-  const base={source:provider,conditions:CONDITION,search_url:source.url,
+  const base={source:provider,conditions:condition,search_url:source.url,
     observed_at:new Date().toISOString(),inventory_complete:false,
     notice:'현재 보이는 표시가만 확인. 최종 결제금액·전체 항공편·시간 필터는 미검증.'};
   let blockedNavigation=false;
@@ -98,7 +98,7 @@ export async function inspectProvider(page,provider) {
       const rows=snapshot.rows.map(text=>parsePrice(provider,text)).filter(Boolean);
       return {...base,status:rows.length?'observed_partial':'schema_changed',
         visible_cards:snapshot.rows.length,parsed_cards:rows.length,
-        observations:rows.sort((a,b)=>a.amount-b.amount).slice(0,5)};
+        observations:rows.sort((a,b)=>a.amount-b.amount).slice(0,100)};
     }
     previous=serialized;
     await new Promise(resolve=>setTimeout(resolve,1000));
