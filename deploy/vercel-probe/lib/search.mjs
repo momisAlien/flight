@@ -42,6 +42,7 @@ export async function searchProvider(provider,c){
   // Retain explicit scope: round-trip "from" fares do not confirm the inbound flight.
   result.observations=result.observations.filter(row=>c.return_date?row.price_scope==='roundtrip_from':!row.text.includes('왕복'))
     .map(row=>({...row,price_scope:c.return_date?'roundtrip_from':'oneway_displayed'}));
+  if(result.status==='observed_partial'&&!result.observations.length)result.status='schema_changed';
   return result;
 }
 export async function reference(c,env=process.env,request=fetch){

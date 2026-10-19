@@ -1,0 +1,41 @@
+// Synthetic unit fixtures only. Never inject these into the deployed UI.
+const {test}=require('node:test');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+const {pathToFileURL}=require('node:url');
+const {JSDOM}=require('jsdom');
+const base=path.resolve(__dirname,'../deploy/vercel-probe/public');
+async function mount(){
+ const dom=new JSDOM(fs.readFileSync(path.join(base,'cloud.html'),'utf8'),{url:'https://example.test',runScripts:'outside-only'});
+ const w=dom.window,lib=await import(pathToFileURL(path.join(base,'ranking.mjs')));
+ Object.assign(w,{plan:lib.plan,rank:lib.rank,dayAfter:lib.dayAfter,AbortController});
+ const pending=[],calls=[];
+ w.fetch=async(url,opts)=>{
+  if(url==='/airports.json')return {json:async()=>[{code:'NRT',city:'Narita',name:'Narita Airport'}]};
+  if(url==='/city-groups.json')return {json:async()=>({'도쿄':['NRT','HND']})};
+  calls.push(url);
+  return new Promise((resolve,reject)=>{pending.push(()=>resolve({ok:true,json:async()=>({status:'observed_partial',observations:[]})}));opts.signal.addEventListener('abort',()=>reject(Error('aborted')));});
+ };
+ await w.eval('(async()=>{'+fs.readFileSync(path.join(base,'cloud.mjs'),'utf8').replace(/^import .*?;\r?\n/,'')+'})()');
+ const $=id=>w.document.getElementById(id);
+ $('airport').value='NRT';$('airport').oninput();$('suggestions').querySelectorAll('button')[1].click();
+ $('start').value='2027-01-18';$('end').value='2027-01-18';
+ return {dom,w,$,calls,pending};
+}
+test('all providers begin concurrently; cancel preserves resumable plan without fake results',async()=>{
+ const {dom,w,$,calls}=await mount();$('searchForm').dispatchEvent(new w.Event('submit',{cancelable:true}));
+ assert.deepEqual(calls.sort(),['/api/google-search','/api/naver-search','/api/reference-search']);
+ assert.equal($('controls').disabled,true);assert.match($('status').textContent,/검색 중/);
+ $('stop').click();await new Promise(r=>setImmediate(r));
+ assert.equal($('controls').disabled,false);assert.equal($('resume').disabled,false);
+ const saved=JSON.parse(w.localStorage.getItem('journey-cloud-v1'));
+ assert.equal(saved.records.length,0);assert.equal(saved.tasks.length,7);
+ $('resume').click();assert.match($('status').textContent,/정리 중/);assert.equal(calls.length,3);dom.window.close();
+});
+test('invalid date range sends no requests; exact dates derive correct stay',async()=>{
+ const {dom,w,$,calls}=await mount();$('end').value='2027-01-17';$('searchForm').dispatchEvent(new w.Event('submit',{cancelable:true}));assert.equal(calls.length,0);
+ $('mode').value='exact';$('mode').onchange();$('end').value='2027-01-24';$('searchForm').dispatchEvent(new w.Event('submit',{cancelable:true}));
+ assert.equal(JSON.parse(w.localStorage.getItem('journey-cloud-v1')).conditions.nights,6);
+ $('stop').click();await new Promise(r=>setImmediate(r));dom.window.close();
+});
