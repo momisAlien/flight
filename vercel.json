@@ -4,6 +4,14 @@
   "installCommand": "npm ci --prefix deploy/vercel-probe --omit=dev",
   "buildCommand": "node tools/build_vercel_probe.cjs",
   "outputDirectory": "probe-dist",
+  "redirects": [
+    {
+      "source": "/",
+      "has": [{"type": "host", "value": "flight-ruddy-nine.vercel.app"}],
+      "destination": "https://flight-git-codex-vercel-ru-a8ac2f-dream30billion-5016s-projects.vercel.app/",
+      "permanent": false
+    }
+  ],
   "functions": {
     "api/*.mjs": {
       "maxDuration": 90,
