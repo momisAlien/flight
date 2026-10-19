@@ -53,4 +53,5 @@ test('reference API remains disabled without key and retains only requested date
  const row={fromCity:'ICN',toCity:'NRT',departureDate:c.departure,returnDate:c.return_date,period:7,transfer:0,totalPrice:50000,airline:'TEST'};
  const fake=async(url,options)=>{assert.equal(JSON.parse(options.body).endDate,'2027-01-19');return {ok:true,json:async()=>({result:{status:200,code:'success'},data:[row,{...row,departureDate:'2027-01-19'}]})};};
  const result=await reference(c,{MYREALTRIP_API_KEY:'TEST_ONLY'},fake);assert.equal(result.observations.length,1);
+ assert.equal((await reference(c,{myrealtrip_api_key:'TEST_ONLY'},fake)).observations.length,1);
 });

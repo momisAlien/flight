@@ -47,13 +47,14 @@ export async function searchProvider(provider,c){
 }
 export async function reference(c,env=process.env,request=fetch){
   const base={source:'myrealtrip',observed_at:new Date().toISOString(),search_url:'https://www.myrealtrip.com/',observations:[]};
-  if(!env.MYREALTRIP_API_KEY)return {...base,status:'not_configured',reason:'Vercel에 마이리얼트립 API 키가 설정되지 않았습니다. 로컬 저장 참고가는 전송되지 않습니다.'};
+  const key=(env.MYREALTRIP_API_KEY||env.myrealtrip_api_key||'').trim();
+  if(!key)return {...base,status:'not_configured',reason:'Vercel에 마이리얼트립 API 키가 설정되지 않았습니다. 로컬 저장 참고가는 전송되지 않습니다.'};
   const nights=(Date.parse(c.return_date)-Date.parse(c.departure))/864e5;
   if(!Number.isInteger(nights)||nights<2||nights>6)return {...base,status:'unsupported',reason:'저장 왕복 참고가는 2~6박만 지원합니다.'};
   // The calendar requires at least two dates; retain only the explicitly requested day.
   const end=new Date(Date.parse(c.departure)+864e5).toISOString().slice(0,10);
   const response=await request('https://partner-ext-api.myrealtrip.com/v1/products/flight/calendar',{
-    method:'POST',headers:{Authorization:`Bearer ${env.MYREALTRIP_API_KEY}`,'Content-Type':'application/json'},redirect:'error',signal:AbortSignal.timeout(30000),
+    method:'POST',headers:{Authorization:`Bearer ${key}`,'Content-Type':'application/json'},redirect:'error',signal:AbortSignal.timeout(30000),
     body:JSON.stringify({depCityCd:c.origin,arrCityCd:c.destination,startDate:c.departure,endDate:end,period:nights+1})});
   if(!response.ok)return {...base,status:'access_stopped',reason:`마이리얼트립 HTTP ${response.status} · 추가 조회 중단`};
   const body=await response.json();
