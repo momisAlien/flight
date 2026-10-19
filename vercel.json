@@ -7,6 +7,12 @@
   "redirects": [
     {
       "source": "/",
+      "has": [{"type": "host", "value": "flight-beta-ten.vercel.app"}],
+      "destination": "https://flight-git-codex-vercel-ru-a8ac2f-dream30billion-5016s-projects.vercel.app/",
+      "permanent": false
+    },
+    {
+      "source": "/",
       "has": [{"type": "host", "value": "flight-ruddy-nine.vercel.app"}],
       "destination": "https://flight-git-codex-vercel-ru-a8ac2f-dream30billion-5016s-projects.vercel.app/",
       "permanent": false
