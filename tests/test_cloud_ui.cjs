@@ -39,3 +39,8 @@ test('invalid date range sends no requests; exact dates derive correct stay',asy
  assert.equal(JSON.parse(w.localStorage.getItem('journey-cloud-v1')).conditions.nights,6);
  $('stop').click();await new Promise(r=>setImmediate(r));dom.window.close();
 });
+test('history restores conditions without fetching prices',async()=>{
+ const {dom,w,$,calls}=await mount();
+ w.localStorage.setItem('journey-cloud-v1',JSON.stringify({conditions:{origins:['ICN'],destinations:['NRT'],cities:{NRT:'도쿄'},start:'2027-01-18',end:'2027-01-18',nights:6,pairs:true},tasks:[],records:[],created_at:'2026-10-19T00:00:00Z'}));
+ $('history').click();assert.equal($('start').value,'2027-01-18');assert.equal($('nights').value,'6');assert.equal(calls.length,0);assert.match($('destinations').textContent,/NRT/);dom.window.close();
+});

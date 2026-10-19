@@ -2,7 +2,7 @@
 
 ## Vercel 클라우드 버전 (2026-10-19)
 
-이 브랜치(`codex/vercel-runtime-check`)는 [로그인 보호된 클라우드 검색](https://flight-git-codex-vercel-ru-a8ac2f-dream30billion-5016s-projects.vercel.app/)을 배포합니다. **PC 서버 없이 Google 왕복·편도 실제 조회가 검증됐습니다.** 네이버 가격 서버는 503이며, 마이리얼트립은 Preview 환경 변수 설정 후 검증해야 합니다. 세 서비스 전체 완성을 뜻하지 않습니다.
+이 브랜치(`codex/vercel-runtime-check`)는 [로그인 보호된 클라우드 검색](https://flight-git-codex-vercel-ru-a8ac2f-dream30billion-5016s-projects.vercel.app/)을 배포합니다. **PC 서버 없이 Google 왕복·편도 실제 조회와 마이리얼트립 저장 참고가 조회가 검증됐습니다.** 네이버 가격 서버는 503으로 미확인입니다. 세 서비스 전체 완성을 뜻하지 않습니다.
 
 클라우드의 조건·설치·실행·제한은 [CLOUD_USAGE.md](docs/CLOUD_USAGE.md)를 참고하세요. 아래 설명은 보존된 **로컬 FastAPI 버전**입니다. Production 주소는 아직 이전 실패 배포이며, 위 보호된 주소를 사용하세요. 검색 API는 Production에서 의도적으로 비활성화됩니다.
 
