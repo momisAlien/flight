@@ -61,6 +61,15 @@ function render(){
   const expected=job.tasks.filter(t=>t.provider===provider).length,records=job.records.filter(r=>r.task.provider===provider),ok=records.filter(r=>['observed_partial','references_received','no_cached_reference'].includes(r.result.status)).length;
   const firstFailure=records.find(r=>!['observed_partial','references_received','no_cached_reference'].includes(r.result.status));
   $('providers').append(node('p',`${names[provider]} · ${ok}/${expected}조건 확인 · ${running?'미확인':'누락'} ${expected-ok}개${firstFailure?' · '+(firstFailure.result.reason||reasons[firstFailure.result.status]||'조회 실패'):''}`));
+  if(provider==='naver'&&firstFailure){
+   const links=node('details');links.append(node('summary','네이버 자동 조회 실패 · 원본에서 확인'));
+   for(const t of job.tasks.filter(t=>t.provider==='naver'&&t.kind==='roundtrip')){
+    const a=node('a',`${t.city} · ${t.origin} → ${t.destination} · ${t.departure} ~ ${t.return_date}`);
+    a.href=`https://flight.naver.com/flights/international/${t.origin}-${t.destination}-${t.departure.replaceAll('-','')}/${t.destination}-${t.origin}-${t.return_date.replaceAll('-','')}?adult=1&fareType=Y`;
+    a.target='_blank';a.rel='noopener noreferrer';const line=node('p');line.append(a);links.append(line);
+   }
+   $('providers').append(links);
+  }
  }
  const cities=[...new Set(Object.values(c.cities))];if(!cities.includes(selectedCity))selectedCity=cities[0];$('tabs').replaceChildren();
  cities.forEach(city=>{const b=node('button',`${city} · 상위 20개`);b.setAttribute('role','tab');b.setAttribute('aria-selected',String(city===selectedCity));b.onclick=()=>{selectedCity=city;render();};$('tabs').append(b);});drawResults();

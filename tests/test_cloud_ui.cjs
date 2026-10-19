@@ -44,3 +44,11 @@ test('history restores conditions without fetching prices',async()=>{
  w.localStorage.setItem('journey-cloud-v1',JSON.stringify({conditions:{origins:['ICN'],destinations:['NRT'],cities:{NRT:'도쿄'},start:'2027-01-18',end:'2027-01-18',nights:6,pairs:true},tasks:[],records:[],created_at:'2026-10-19T00:00:00Z'}));
  $('history').click();assert.equal($('start').value,'2027-01-18');assert.equal($('nights').value,'6');assert.equal(calls.length,0);assert.match($('destinations').textContent,/NRT/);dom.window.close();
 });
+test('failed Naver query offers original link without claiming a price',async()=>{
+ const {dom,w,$}=await mount();
+ const task={provider:'naver',kind:'roundtrip',city:'도쿄',origin:'ICN',destination:'NRT',departure:'2027-01-18',return_date:'2027-01-24'};
+ w.localStorage.setItem('journey-cloud-v1',JSON.stringify({conditions:{origins:['ICN'],destinations:['NRT'],cities:{NRT:'도쿄'},start:'2027-01-18',end:'2027-01-18',nights:6,pairs:false},tasks:[task],records:[{task,result:{status:'upstream_unavailable',observations:[]}}],created_at:'2026-10-19T00:00:00Z'}));
+ $('history').click();assert.match($('providers').textContent,/누락 1개/);
+ assert.match($('providers').querySelector('a').href,/ICN-NRT-20270118\/NRT-ICN-20270124/);
+ assert.equal($('results').querySelectorAll('.ticket').length,0);dom.window.close();
+});
