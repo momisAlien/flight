@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {accessBlocked,parsePrice,inspectProvider,SOURCES} from '../lib/provider.mjs';
+import {accessBlocked,parsePrice,inspectProvider,SOURCES,failureCategory} from '../lib/provider.mjs';
 test('rejects login, CAPTCHA, off-site navigation and access restriction',()=>{
   assert.equal(accessBlocked('google',SOURCES.google.url,''),false);
   for(const url of ['https://accounts.google.com/','https://www.google.com/sorry/index','https://www.google.com/login']) {
@@ -39,4 +39,10 @@ test('Naver price-server 503 stops before reading cards',async()=>{
   const result=await inspectProvider(page,'naver');
   assert.equal(result.status,'upstream_unavailable');assert.equal(reads,0);
   assert.equal(result.network.http_errors[0].status,503);
+});
+test('5xx diagnostics distinguish restriction without returning the raw body',()=>{
+ assert.equal(failureCategory('503 Service Unavailable'),'service_unavailable');
+ assert.equal(failureCategory('CloudFront Request blocked private-token'),'access_restriction');
+ assert.equal(failureCategory('upstream connect error'),'upstream_connection_error');
+ assert.equal(failureCategory('{"private":"secret"}'),'unclassified_5xx');
 });

@@ -27,6 +27,15 @@ export function parsePrice(provider,text) {
     conditional:provider==='naver'?!text.includes('성인/모든 결제수단'):null,
     comparison_eligible:false};
 }
+// Classify the error page without retaining tokens, cookies, headers or raw bodies.
+export function failureCategory(text){
+  if(/captcha|verify you are human|bot detection|automated requests|access denied|request blocked|비정상적인 접근|접근이 제한/i.test(text))return 'access_restriction';
+  if(/cloudfront/i.test(text))return 'cdn_error';
+  if(/upstream|connect error|connection refused|connection reset|timed out|timeout/i.test(text))return 'upstream_connection_error';
+  if(/maintenance|점검/i.test(text))return 'maintenance';
+  if(/service unavailable|temporarily unavailable/i.test(text))return 'service_unavailable';
+  return 'unclassified_5xx';
+}
 export async function inspectProvider(page,provider,condition=CONDITION,url=null) {
   const source={...SOURCES[provider],url:url||SOURCES[provider]?.url};
   if (!source) throw Error('Unsupported provider');
@@ -36,6 +45,7 @@ export async function inspectProvider(page,provider,condition=CONDITION,url=null
   let blockedNavigation=false;
   let denied=false;
   let upstreamUnavailable=false;
+  let failureDetail=Promise.resolve('unclassified_5xx');
   const network={started:0,finished:0,failed:[],http_errors:[]};
   const safeAddress=url=>{try{const p=new URL(url);return {host:p.hostname,path:p.pathname.slice(0,160)};}catch{return {host:'unknown'};}};
   page.on('requestfailed',request=>{
@@ -50,8 +60,11 @@ export async function inspectProvider(page,provider,condition=CONDITION,url=null
       if (response.status()>=400 && network.http_errors.length<12) network.http_errors.push({...address,status:response.status()});
       if (/(^|\.)naver\.com$|(^|\.)google\.com$/.test(address.host)
           && [401,403,429].includes(response.status())) denied=true;
-      if (address.host==='flight-api.naver.com' && response.status()>=500
-          && ['/flight/international/searchFlights','/graphql'].includes(address.path)) upstreamUnavailable=true;
+      if (!upstreamUnavailable && address.host==='flight-api.naver.com' && response.status()>=500
+          && ['/flight/international/searchFlights','/graphql'].includes(address.path)) {
+        upstreamUnavailable=true;
+        failureDetail=typeof response.text==='function'?response.text().then(text=>failureCategory(text.slice(0,16384))).catch(()=>'body_unavailable'):Promise.resolve('body_unavailable');
+      }
     }
   });
   await page.setRequestInterception(true);
@@ -74,8 +87,14 @@ export async function inspectProvider(page,provider,condition=CONDITION,url=null
   const deadline=Date.now()+45000;
   let previous='',stable=0,lastBody='';
   while (Date.now()<deadline) {
-    if (upstreamUnavailable) return {...base,status:'upstream_unavailable',
-      reason:'가격 서버 5xx 응답. 추가 조회 없이 중단',network,observations:[]};
+    if (upstreamUnavailable) {
+      let timer;
+      const category=await Promise.race([failureDetail,new Promise(resolve=>{timer=setTimeout(()=>resolve('body_timeout'),2000);})]);
+      clearTimeout(timer);
+      return {...base,status:category==='access_restriction'?'access_stopped':'upstream_unavailable',
+        reason:category==='access_restriction'?'네이버 서버가 접근 제한을 응답했습니다. 우회 없이 중단했습니다.':`가격 서버 5xx 응답 (${category}). 추가 조회 없이 중단`,
+        failure_category:category,network,observations:[]};
+    }
     let snapshot;
     try {
       snapshot=await page.evaluate(({selector,provider})=>{
