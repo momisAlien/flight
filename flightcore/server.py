@@ -42,12 +42,12 @@ def server_parser():
     return p
 
 
-def create_app(db_path,lan=None):
+def create_app(db_path,lan=None,combined_factory=CombinedJobs):
     app=FastAPI(docs_url=None,redoc_url=None,openapi_url=None)
     jobs=Jobs(db_path)
     reference_jobs=ReferenceJobs(db_path)
     browser_jobs=BrowserJobs(db_path)
-    combined_jobs=CombinedJobs(db_path,browser_jobs,reference_jobs)
+    combined_jobs=combined_factory(db_path,browser_jobs,reference_jobs)
     token=secrets.token_urlsafe(32)
     hosts={"127.0.0.1","localhost"}
     if lan:
@@ -102,7 +102,7 @@ def create_app(db_path,lan=None):
 
     @app.get("/api/config")
     def config():
-        return {"csrf":token,"lan":bool(lan),"lan_address":lan,"version":"3.0-local",
+        return {"csrf":token,"lan":bool(lan),"lan_address":lan,"version":"3.0-local","shared_pc":getattr(combined_jobs,"shared",False),
                 "notice":"같은 네트워크에서 접근 가능한 사람이 입력 내용을 보고 변경할 수 있습니다. HTTP는 암호화되지 않습니다. 신뢰하는 사설망에서만 사용하고 공유가 끝나면 서버를 종료하세요." if lan else "127.0.0.1 · 이 PC에서만 접속",
                 "external_status":"Google·네이버 관찰 및 마이리얼트립 참고 조회 연결 · 확정 운임 자동 비교 미연동","travelpayouts":"약관 확인 대기 · 연동 코드 없음"}
 

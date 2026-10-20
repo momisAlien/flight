@@ -415,6 +415,21 @@ test('search status banner animates only while running and distinguishes partial
   }
  }finally{u.dom.window.close();}
 });
+test('shared PC mode identifies execution host and queued searches remain cancellable and poll',async()=>{
+ const u=await mount({config:{shared_pc:true}});try{
+  assert.match(u.get('accessMode').textContent,/집 PC 검색/);
+  assert.equal(await u.win.restoreActiveCombined(),false);
+  u.win.eval('combinedId="queued-test"');
+  let polls=0;u.win.setTimeout=()=>{polls++;return 1;};
+  u.win.fetch=async()=>({ok:true,json:async()=>({status:'queued',queue_position:2,providers:{},
+   ranking:{notice:'test',roundtrips:[],oneway_combinations:[],roundtrip_total:0,oneway_total:0}})});
+  await u.win.refreshCombined();
+  assert.match(u.get('searchState').textContent,/기다리는 중/);
+  assert.match(u.get('combinedOutput').textContent,/대기 순서 2/);
+  assert.equal(u.get('combinedCancel').disabled,false);
+  assert.equal(polls,1);
+ }finally{u.dom.window.close();}
+});
 test('startup prefers active server search over cancelled tab history and cancel targets active id',async()=>{
  const u=await mount();try{
   u.win.eval('combinedId="old-cancelled"');u.win.sessionStorage.setItem('combinedJob','old-cancelled');

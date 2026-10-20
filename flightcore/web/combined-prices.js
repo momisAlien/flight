@@ -9,10 +9,10 @@ const combinedHistoryOutput=el('div');combinedHistoryOutput.id='combinedHistoryO
 const combinedAgain=el('button','이 결과의 조건으로 새 검색');combinedAgain.type='button';combinedAgain.id='combinedAgain';combinedAgain.disabled=true;combinedHistory.after(combinedAgain);
 const sourceName={naver:'네이버',google:'Google',myrealtrip:'마이리얼트립'};
 const combinedStatusName={pending:'대기',running:'검색 중',completed_references:'참고가 조회 완료',completed_observations:'표시가 조회 완료',completed_partial:'일부 완료',failed_partial:'일부 조회 실패',cancelled_partial:'중단됨',interrupted:'실행 중 끊김',setup_or_conditions_unsupported:'설정 또는 조건 확인 필요',provider_error:'조회 오류'};
-Object.assign(combinedStatusName,{completed_partial_observations:'일부 조건 조회 실패',access_stopped:'로그인·접근 제한으로 중단',browser_error:'브라우저 오류',cancelled:'중단됨',setup_required:'Chrome 설정 필요'});
+Object.assign(combinedStatusName,{queued:'검색 대기 중',completed_partial_observations:'일부 조건 조회 실패',access_stopped:'로그인·접근 제한으로 중단',browser_error:'브라우저 오류',cancelled:'중단됨',setup_required:'Chrome 설정 필요'});
 function showSearchState(status){
- const running=status==='running',complete=['completed','completed_partial'].includes(status);
- const title=running?'최저가 검색 중…':complete?'검색 완료':status==='cancelled'?'검색 중단':status==='interrupted'?'검색이 중단되었습니다':status==='connection_error'?'진행 상태 연결 확인 중':'검색 상태 확인 필요';
+ const running=['running','queued'].includes(status),complete=['completed','completed_partial'].includes(status);
+ const title=status==='queued'?'앞선 검색이 끝나기를 기다리는 중…':running?'최저가 검색 중…':complete?'검색 완료':status==='cancelled'?'검색 중단':status==='interrupted'?'검색이 중단되었습니다':status==='connection_error'?'진행 상태 연결 확인 중':'검색 상태 확인 필요';
  const banner=el('div','','search-state '+(running?'is-searching':complete?'is-complete':'is-warning'));banner.id='searchState';banner.setAttribute('role','status');banner.setAttribute('aria-live','polite');
  banner.append(el('span',running?'◌':complete?'✓':'!','search-state-icon'),el('strong',title));
  if(running){const bar=el('div','','search-wait-bar');bar.setAttribute('role','progressbar');bar.setAttribute('aria-label','최저가 검색 진행 중');bar.append(el('span'));banner.append(bar);}
@@ -97,7 +97,8 @@ async function refreshCombined(){
  const priceNotice=el('details');priceNotice.append(el('summary','가격 안내'),el('p',state.ranking.notice));combinedOutput.replaceChildren(priceNotice);
  showSearchState(state.status);
  const c=state.conditions;combinedConditions=c?structuredClone(c):null;if(c)combinedOutput.append(el('p',`이 결과의 검색 조건: ${c.origins.join(', ')} → ${c.destinations.join(', ')} · 출발 ${c.start} ~ ${c.end} · ${c.nights}박`));
- const running=state.status==='running';combinedStart.disabled=running;combinedCancel.disabled=!running;
+ const running=['running','queued'].includes(state.status);combinedStart.disabled=running;combinedCancel.disabled=!running;
+ if(state.status==='queued')combinedOutput.append(el('p',`검색 대기 중 · 앞선 검색이 끝나면 자동 시작합니다. 대기 순서 ${state.queue_position||1}`));
  combinedAgain.disabled=running||!combinedConditions;combinedHistory.disabled=running;
  if(!['completed','completed_partial'].includes(state.status))combinedOutput.append(el('p',`통합 검색: ${combinedStatusName[state.status]||state.status}`));
  for(const [name,p] of Object.entries(state.providers)){
@@ -140,6 +141,7 @@ async function refreshCombined(){
 }
 async function pollCombined(){const id=combinedId;try{await refreshCombined();}catch(error){if(id!==combinedId)return;showSearchState('connection_error');clearTimeout(combinedTimer);combinedTimer=setTimeout(pollCombined,5000);}}
 async function restoreActiveCombined(){
+ if(sharedPC)return false; // A new visitor may enqueue a search instead of taking over another person's.
  const history=await api('/api/combined-history');
  const active=Array.isArray(history.items)?history.items.find(item=>item.status==='running'):null;
  if(!active)return false;

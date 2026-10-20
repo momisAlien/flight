@@ -4,24 +4,11 @@
   "installCommand": "npm ci --prefix deploy/vercel-probe --omit=dev",
   "buildCommand": "node tools/build_vercel_probe.cjs",
   "outputDirectory": "probe-dist",
-  "redirects": [
-    {
-      "source": "/",
-      "has": [{"type": "host", "value": "flight-beta-ten.vercel.app"}],
-      "destination": "https://flight-git-codex-vercel-ru-a8ac2f-dream30billion-5016s-projects.vercel.app/",
-      "permanent": false
-    },
-    {
-      "source": "/",
-      "has": [{"type": "host", "value": "flight-ruddy-nine.vercel.app"}],
-      "destination": "https://flight-git-codex-vercel-ru-a8ac2f-dream30billion-5016s-projects.vercel.app/",
-      "permanent": false
-    }
+  "routes": [
+    {"src": "/(.*)", "dest": "/api/pc?path=$1"}
   ],
   "functions": {
-    "api/*.mjs": {
-      "maxDuration": 90,
-      "includeFiles": "deploy/vercel-probe/node_modules/@sparticuz/chromium/bin/**"
-    }
+    "api/pc.mjs": {"maxDuration": 30},
+    "api/*.mjs": {"maxDuration": 90, "includeFiles": "deploy/vercel-probe/node_modules/@sparticuz/chromium/bin/**"}
   }
 }

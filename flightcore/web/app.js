@@ -1,6 +1,6 @@
 'use strict';
 const $=id=>document.getElementById(id);
-let csrf='',conditions=null,coverageData=null,jobId=null,pollTimer=null,inputPage=1;
+let csrf='',conditions=null,coverageData=null,jobId=null,pollTimer=null,inputPage=1,sharedPC=false;
 let eligiblePage=1,uncertainPage=1,csvReceipt=null,comparisonRunning=false,daily=[];
 const originAirports=[['ICN','인천'],['GMP','김포'],['CJJ','청주'],['PUS','김해'],['TAE','대구'],['CJU','제주'],['MWX','무안'],['YNY','양양']];
 const destinationAirports={tokyo:[['NRT','나리타'],['HND','하네다']],osaka:[['KIX','간사이'],['UKB','고베']]};
@@ -55,7 +55,7 @@ async function loadResults(){if(!jobId)return;const sort=$('sort').value;for(con
 async function pollJob(){try{const state=await api(`/api/jobs/${jobId}`);comparisonRunning=state.status==='비교 중';$('jobStatus').textContent=`${state.status} · ${state.processed}개 입력·조합 평가 · 조건 충족 ${state.eligible} / 미확정 ${state.uncertain}${state.error?` · ${state.error}`:''}`;$('startCompare').disabled=comparisonRunning;$('cancelCompare').disabled=!comparisonRunning;$('retryCompare').hidden=!(state.status.includes('실패')||state.status.includes('취소')||state.status.includes('중단'));await loadResults();if(comparisonRunning)pollTimer=setTimeout(pollJob,1200);}catch(error){comparisonRunning=false;$('startCompare').disabled=false;$('cancelCompare').disabled=true;$('retryCompare').hidden=false;toast(error.message);}}
 async function saved(){await refreshDashboard();markStale();if(conditions&&!comparisonRunning)await startComparison(false);}
 function invalidateCsv(){csvReceipt=null;$('saveCsv').disabled=true;$('csvPreview').replaceChildren();}
-async function initialize(){const config=await api('/api/config');csrf=config.csrf;$('accessMode').textContent=config.lan?'LAN 공유 켜짐':'로컬 전용';if(config.lan){$('lanWarning').hidden=false;$('lanWarning').textContent=config.notice;}
+async function initialize(){const config=await api('/api/config');csrf=config.csrf;sharedPC=Boolean(config.shared_pc);$('accessMode').textContent=config.shared_pc?'집 PC 검색 · 공유 모드':config.lan?'LAN 공유 켜짐':'로컬 전용';if(config.shared_pc){$('lanWarning').hidden=false;$('lanWarning').textContent='집 PC에서 검색합니다. 공유 이용자는 검색 기록을 함께 보며, 검색은 순서대로 처리됩니다.';}else if(config.lan){$('lanWarning').hidden=false;$('lanWarning').textContent=config.notice;}
  airportChoices($('originChoices'),originAirports,['ICN','GMP','CJJ']);destinations();renderLegForms();$('quoteId').value=`manual-${Date.now()}`;
  for(const [name,url] of services)$('services').append(safeLink(url,`${name} ↗ · 직접 확인`));
  $('city').onchange=destinations;$('quoteType').onchange=renderLegForms;$('baggage').onchange=()=>{$('bagSpecWrap').hidden=$('baggage').value==='none_requested';};
