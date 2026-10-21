@@ -12,7 +12,7 @@ export function backendOrigin(value) {
 }
 const outputHeaders={
  'Cache-Control':'no-store','X-Content-Type-Options':'nosniff',
- 'Referrer-Policy':'no-referrer','X-Frame-Options':'DENY'
+ 'Referrer-Policy':'same-origin','X-Frame-Options':'DENY'
 };
 export function relay(env=process.env,fetcher=fetch){
  return async function handler(req,res){
