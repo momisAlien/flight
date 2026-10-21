@@ -56,3 +56,17 @@ test('offline PC produces a safe error; redirects are forbidden; paths cannot ch
  }
  assert.equal(calls,1);
 });
+
+test('form login issues a secure signed session without browser auth challenges',async()=>{
+ let calls=0;const handler=relay(env,async()=>{calls++;return new Response('app');});
+ const landing=res();await handler(req({query:{path:''},headers:{host:'flight.example'}}),landing);
+ assert.equal(landing.code,200);assert.match(landing.body,/name="password"/);assert.equal(landing.headers['WWW-Authenticate'],undefined);
+ const login=req({method:'POST',query:{path:'login'},headers:{host:'flight.example',origin:'https://flight.example','content-type':'application/x-www-form-urlencoded'},body:new URLSearchParams({username:env.FLIGHT_SHARE_USER,password:env.FLIGHT_SHARE_PASSWORD}).toString()});
+ const success=res();await handler(login,success);assert.equal(success.code,303);
+ const cookie=success.headers['Set-Cookie'];assert.match(cookie,/HttpOnly; Secure; SameSite=Lax/);
+ const authed=res();await handler(req({headers:{host:'flight.example',cookie:cookie.split(';')[0]}}),authed);assert.equal(authed.code,200);
+ const tampered=res();await handler(req({headers:{host:'flight.example',cookie:cookie.split(';')[0]+'x'}}),tampered);assert.equal(tampered.code,401);
+ const wrong=res();await handler({...login,body:'username=test&password=wrong'},wrong);assert.equal(wrong.code,401);assert.equal(wrong.headers['Set-Cookie'],undefined);
+ const cross=res();await handler({...login,headers:{...login.headers,origin:'https://evil.example'}},cross);assert.equal(cross.code,403);
+ assert.equal(calls,1);
+});
