@@ -110,7 +110,7 @@ async function setupSimpleSearch(){
  $('combinedStart').hidden=true;$('combinedCancel').textContent='검색 중단';$('combinedHistory').textContent='최근 검색';$('combinedAgain').textContent='같은 조건 재검색';
  const providers=el('div','','provider-badges');for(const name of ['네이버','Google','마이리얼트립'])providers.append(el('span',name));heading.after(providers);
  providers.after(el('p','왕복 · 편도 조합 각각 최저가 20개','search-caption'));
- const note=el('p','마이리얼트립은 2~6박·출발일 범위 2일 이상에서 저장 왕복 참고가를 조회합니다.','search-caption');primary.append(note);
+ const note=el('p','마이리얼트립은 2~6박의 저장 왕복 참고가를 조회합니다.','search-caption');primary.append(note);
  const empty=el('div','','search-empty');empty.id='searchEmpty';empty.append(el('span','↗','empty-symbol'),el('h3','여행 조건을 선택해 주세요'),el('p','세 서비스의 가격을 모아 비교합니다.'));$('combinedOutput').before(empty);
  const observer=new MutationObserver(()=>{empty.hidden=!!$('combinedOutput').children.length;submit.disabled=$('combinedCancel').disabled===false||combinedStarting;});
  observer.observe($('combinedOutput'),{childList:true,subtree:true});

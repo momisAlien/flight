@@ -17,8 +17,6 @@ def tasks(c):
         raise ValueError("참고 캘린더는 공항 변경·도착일 확장을 지원하지 않습니다")
     if c.passengers.adults != 1 or c.passengers.children or c.passengers.infants or c.cabin != "economy" or c.baggage != "none_requested":
         raise ValueError("이 API는 승객·좌석·수하물 조건을 받지 않습니다. 기본 조건에서 참고 가격으로만 조회하세요")
-    if c.start == c.end:
-        raise ValueError("공식 캘린더는 마지막 날이 시작일 이후여야 합니다. 2일 이상을 지정하세요")
     for origin in c.origins:
         for destination in c.destinations:
             start = c.start

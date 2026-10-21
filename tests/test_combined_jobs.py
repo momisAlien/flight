@@ -110,7 +110,7 @@ class CombinedJobsTests(unittest.TestCase):
                 self.assertEqual((preview['browser_queries'],preview['reference_queries']),(12,1))
                 body['conditions']['end']='2026-12-10'
                 preview=client.post('/api/combined-plan',json=body,headers=headers).json()
-                self.assertIsNone(preview['reference_queries'])
+                self.assertEqual(preview['reference_queries'],1)
                 self.assertEqual(preview['browser_queries'],6)
                 with patch('flightcore.server.CombinedJobs.start',return_value='test') as start:
                     response=client.post('/api/combined-jobs',json={'conditions':json.loads(dumps(c))},headers=headers)

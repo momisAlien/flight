@@ -28,12 +28,13 @@ def api_key():
 
 def calendar(origin, destination, start, end, nights, *, client=None, key=None):
     code(origin); code(destination)
-    if origin == destination or not 0 < (end-start).days <= 30:
-        raise ValueError("서로 다른 공항과 2~31일의 출발일 범위를 지정하세요")
+    if origin == destination or not 0 <= (end-start).days <= 30:
+        raise ValueError("서로 다른 공항과 1~31일의 출발일 범위를 지정하세요")
     if type(nights) is not int or not 2 <= nights <= 6:
         raise ValueError("이 공식 API는 period 3~7만 지원합니다(날짜 차이 2~6일)")
+    query_end = end if end > start else end + timedelta(days=1)
     payload = {"depCityCd": origin, "arrCityCd": destination,
-               "startDate": start.isoformat(), "endDate": end.isoformat(), "period": nights+1}
+               "startDate": start.isoformat(), "endDate": query_end.isoformat(), "period": nights+1}
     secret = key or api_key()
     own = client is None
     client = client or httpx.Client(timeout=30, follow_redirects=False, trust_env=False)
@@ -62,11 +63,13 @@ def calendar(origin, destination, start, end, nights, *, client=None, key=None):
                 departure = date.fromisoformat(row["departureDate"])
                 returning = date.fromisoformat(row["returnDate"])
                 if (row["fromCity"] != origin or row["toCity"] != destination
-                    or row["period"] != nights+1 or not start <= departure <= end
+                    or row["period"] != nights+1 or not start <= departure <= query_end
                     or returning != departure+timedelta(days=nights)
                     or type(row["totalPrice"]) is not int or row["totalPrice"] <= 0
                     or row["transfer"] != 0):
                     raise ValueError()
+                if departure > end:
+                    continue  # Calendar requires two days; only retain the requested day.
                 # Whitelist fields; never write response headers, tokens or raw error text.
                 references.append({name: row.get(name) for name in
                                    ("fromCity", "toCity", "departureDate", "returnDate",

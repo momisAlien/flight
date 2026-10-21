@@ -5,6 +5,20 @@ from flightcore.myrealtrip import calendar
 
 
 class MyRealTripTests(unittest.TestCase):
+    def test_single_day_filters_extra_calendar_day(self):
+        def handler(request):
+            import json
+            self.assertEqual(json.loads(request.content)['endDate'], '2027-01-19')
+            return httpx.Response(200,json={'result':{'status':200,'code':'success'},'data':[
+                {'fromCity':'ICN','toCity':'NRT','departureDate':f'2027-01-{day}',
+                 'returnDate':f'2027-01-{day+5}','period':6,'totalPrice':123,
+                 'airline':'TEST','transfer':0} for day in (18,19)]})
+        with httpx.Client(transport=httpx.MockTransport(handler)) as client:
+            result=calendar('ICN','NRT',date(2027,1,18),date(2027,1,18),5,client=client,key='test-key')
+        self.assertEqual(len(result['references']),1)
+        self.assertEqual(result['references'][0]['departureDate'],'2027-01-18')
+        self.assertEqual(len(result['dates']),1)
+
     def query(self, handler):
         with httpx.Client(transport=httpx.MockTransport(handler), follow_redirects=False) as client:
             return calendar("ICN", "NRT", date(2026,12,10), date(2026,12,11), 5,
