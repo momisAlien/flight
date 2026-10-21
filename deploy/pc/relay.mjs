@@ -19,7 +19,7 @@ export function relay(env=process.env,fetcher=fetch){
   const user=env.FLIGHT_SHARE_USER||'';
   const password=env.FLIGHT_SHARE_PASSWORD||'';
   const token=env.FLIGHT_BRIDGE_TOKEN||'';
-  if(!user||user.includes(':')||password.length<24||token.length<32)
+  if(!user||user.includes(':')||password.length<4||token.length<32)
    return json(503,'공유 접속 설정이 아직 완료되지 않았습니다.');
   let supplied='';
   try{

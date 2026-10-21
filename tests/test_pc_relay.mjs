@@ -9,6 +9,21 @@ function req(extra={}){
 }
 function res(){return {headers:{},setHeader(k,v){this.headers[k]=v;},
  status(n){this.code=n;return this;},json(v){this.body=v;return this;},send(v){this.body=v;return this;}};}
+
+test('four-character passwords work while incorrect credentials and short bridge tokens fail',async()=>{
+ const config={...env,FLIGHT_SHARE_PASSWORD:'1234'};
+ let calls=0;
+ const fetcher=async()=>{calls++;return new Response('ok');};
+ const request=req();
+ request.headers.authorization='Basic '+Buffer.from('test:1234').toString('base64');
+ const success=res();await relay(config,fetcher)(request,success);
+ assert.equal(success.code,200);
+ const wrong=res();await relay(config,fetcher)(req(),wrong);
+ assert.equal(wrong.code,401);
+ const short=res();await relay({...config,FLIGHT_BRIDGE_TOKEN:'1234'},fetcher)(request,short);
+ assert.equal(short.code,503);
+ assert.equal(calls,1);
+});
 test('invalid targets and missing authentication never call the PC',async()=>{
  for(const value of ['http://localhost:8001','https://127.0.0.1','https://evil.example','https://ok.trycloudflare.com/x'])
   assert.throws(()=>backendOrigin(value));
