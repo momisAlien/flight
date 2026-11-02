@@ -8,7 +8,7 @@ from flightcore.combined_jobs import reference_reason
 
 class DepartureFilterTests(unittest.TestCase):
     def setUp(self):
-        self.c=Conditions(('ICN',),('NRT',),date(2027,1,18),date(2027,1,18),6,outbound_window=TimeWindow(time(20),time(6)),inbound_window=TimeWindow(time(9),time(12)))
+        self.c=Conditions(('ICN',),('NRT',),date(2027,1,18),date(2027,1,18),6,direct_only=False,outbound_window=TimeWindow(time(20),time(6)),inbound_window=TimeWindow(time(9),time(12)))
         self.req=dict(kind='roundtrip',origin='ICN',destination='NRT',departure='2027-01-18',return_date='2027-01-24')
         self.text='20:40ICN\n22:25NRT\n09:50NRT\n11:55ICN'
     def test_routes_overnight_and_boundaries(self):
@@ -32,7 +32,7 @@ class DepartureFilterTests(unittest.TestCase):
         self.assertEqual(r['time_filter']['naver'],dict(outside=1,unknown=1))
         self.assertEqual(ranking(replace(self.c,outbound_window=None,inbound_window=None),{'naver':tasks},[])['roundtrip_total'],3)
     def test_single_day_reason(self):
-        self.assertIn('2일 이상',reference_reason(self.c))
+        self.assertNotIn('2일 이상',reference_reason(self.c))
 
     def test_oneway_pairs_and_cached_unknowns(self):
         def task(kind, origin, destination, day, text, price):

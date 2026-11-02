@@ -105,6 +105,10 @@ async function refreshCombined(){
   const missing=running?(p.failed_queries||0):p.total!==undefined?Math.max(0,p.total-(p.completed||0)):(p.failed_queries||0);
   combinedOutput.append(el('p',`${sourceName[name]} · ${running?(combinedStatusName[p.status]||p.status)+' · ':''}${p.total!==undefined?`${p.completed||0}/${p.total}조건 확인 · 누락 ${missing}개`:p.notice||combinedStatusName[p.status]||p.status}`));
  }
+ if(state.ranking.direct_filter){
+  combinedOutput.append(el('p','직항만 비교 · 왕복은 양쪽 구간 모두 확인된 후보만 표시합니다.'));
+  for(const [name,count] of Object.entries(state.ranking.direct_filter))combinedOutput.append(el('p',`${sourceName[name]} · 경유 ${count.outside}개 · 직항 여부 미확인 ${count.unknown}개 제외`));
+ }
  if(state.ranking.time_filter){
   const ranges=[['가는 편',c?.outbound_window],['오는 편',c?.inbound_window]].filter(([,w])=>w).map(([name,w])=>`${name} ${w.start.slice(0,5)}~${w.end.slice(0,5)}`);
   combinedOutput.append(el('p',`현지 출발 시간대: ${ranges.join(' · ')}`));

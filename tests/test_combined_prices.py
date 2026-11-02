@@ -7,7 +7,7 @@ from flightcore.combined_prices import ranking
 
 class CombinedPricesTests(unittest.TestCase):
     def setUp(self):
-        self.c = Conditions(('ICN',), ('NRT',), date(2026,10,12), date(2026,10,13), 5)
+        self.c = Conditions(('ICN',), ('NRT',), date(2026,10,12), date(2026,10,13), 5, direct_only=False)
 
     def task(self, kind, prices, day=None):
         inbound = kind == 'inbound'
@@ -59,7 +59,7 @@ class CombinedPricesTests(unittest.TestCase):
 
 class CityRankingTests(unittest.TestCase):
     def test_each_city_gets_twenty_before_global_limit(self):
-        c=Conditions(('ICN',),('NRT','HND','KIX','UKB'),date(2027,1,18),date(2027,1,18),6)
+        c=Conditions(('ICN',),('NRT','HND','KIX','UKB'),date(2027,1,18),date(2027,1,18),6,direct_only=False)
         tasks=[]
         for dest,base in [('NRT',1000),('HND',2000),('KIX',100),('UKB',200)]:
             for kind in ('roundtrip','outbound','inbound'):

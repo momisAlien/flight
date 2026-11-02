@@ -4,6 +4,7 @@ from heapq import nsmallest,merge
 from itertools import islice
 from .core import plan
 from .departure_filter import check
+from .direct_filter import check as check_direct
 from dataclasses import replace
 from functools import lru_cache
 from pathlib import Path
@@ -51,6 +52,7 @@ def ranking(c,browser_tasks,references):
 def _ranking(c,browser_tasks,references):
     roundtrips=[];out={};back={};seen=set()
     time_filter={name:{'outside':0,'unknown':0} for name in ('naver','google','myrealtrip')}
+    direct_filter={name:{'outside':0,'unknown':0} for name in ('naver','google','myrealtrip')}
     slots={}
     for req in plan(c):
         if req.kind=='roundtrip':slots[(req.origin,req.destination,str(req.departure),req.return_origin or req.destination,req.return_destination or req.origin,str(req.return_date))]=req
@@ -64,6 +66,11 @@ def _ranking(c,browser_tasks,references):
                 key=(provider,req['kind'],req['origin'],req['destination'],req['departure'],req.get('return_date'),row.get('text'),str(price))
                 if key in seen:continue
                 seen.add(key)
+                if c.direct_only:
+                    direct_verdict=check_direct(provider,req,row.get('text',''))
+                    if direct_verdict!='matched':
+                        direct_filter[provider][direct_verdict]+=1
+                        continue
                 verdict=check(c,provider,req,row.get('text',''))
                 if verdict!='matched':
                     time_filter[provider][verdict]+=1
@@ -87,6 +94,9 @@ def _ranking(c,browser_tasks,references):
             key=('myrealtrip',slot,str(price),row.get('airline'))
             if key in seen:continue
             seen.add(key)
+            if c.direct_only and (type(row.get('transfer')) is not int or row['transfer']!=0):
+                direct_filter['myrealtrip']['unknown']+=1
+                continue
             if c.outbound_window or c.inbound_window:
                 time_filter['myrealtrip']['unknown']+=1
                 continue
@@ -110,4 +120,5 @@ def _ranking(c,browser_tasks,references):
     return {'roundtrips':nsmallest(20,roundtrips,key=lambda x:Decimal(x['amount'])),
             'oneway_combinations':combinations,'roundtrip_total':len(roundtrips),'oneway_total':pair_count,
             'time_filter':time_filter if c.outbound_window or c.inbound_window else None,
+            'direct_filter':direct_filter if c.direct_only else None,
             'limit_per_category':20,'notice':'현재 로드된 검색 카드의 표시가 기준이며 전체 항공편 최저가 보장은 아닙니다. 시간대 지정 시 수집된 현지 출발 시각으로 비교 후보를 필터링하며, 시각 미확인 후보는 제외합니다. 수하물·좌석 필터 제외 · 카드 할인 조건 포함 가능. 왕복 단일 발권 미확인, 편도 조합은 별도 구매입니다. 마이리얼트립은 저장 왕복 참고가이며 편도·시간 정보 미지원. 각 가격의 조회 시각이 다를 수 있습니다.'}

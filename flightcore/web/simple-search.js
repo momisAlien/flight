@@ -55,7 +55,8 @@ async function setupSimpleSearch(){
  const advanced=[];let node=$('adults').closest('.three');const end=$('compareOneWays').closest('label');
  while(node&&node!==end){const next=node.nextElementSibling;advanced.push(node);node=next;}
  const advancedBox=el('details','','extra-tools');advancedBox.append(el('summary','추가 조건 · 수동 비교용'));for(const item of advanced)advancedBox.append(item);end.before(advancedBox);
- end.hidden=true;$('directOnly').checked=false;
+ end.hidden=true;
+ advancedBox.before($('directOnly').closest('label'));
  $('deadline').closest('label').hidden=true;
  const rangeRow=$('start').closest('.two'),nightsRow=$('nights').closest('.two');
  const modeBar=el('div','','date-search-modes');modeBar.setAttribute('role','group');modeBar.setAttribute('aria-label','날짜 검색 방식');
@@ -123,7 +124,7 @@ async function setupSimpleSearch(){
   if(codes.some(code=>!worldAirports.some(a=>a.code===code)))throw new Error('목록에 있는 3자리 공항 코드를 선택해 주세요');
   conditions={origins:selected('originChoices'),destinations:codes,...readSearchDates()};
   // Default search has one supported passenger/cabin configuration. Legacy fields belong to manual tools.
-  Object.assign(conditions,{passengers:{adults:1,children:0,infants:0},cabin:'economy',baggage:'none_requested',direct_only:false,max_stops:99,max_duration_minutes:null,outbound_window:windowValue('searchOutStart','searchOutEnd'),inbound_window:windowValue('searchInStart','searchInEnd'),return_deadline:null,allow_origin_change:false,allow_destination_change:false,arrival_expansion:false,compare_oneways:true});
+  Object.assign(conditions,{passengers:{adults:1,children:0,infants:0},cabin:'economy',baggage:'none_requested',direct_only:$('directOnly').checked,max_stops:99,max_duration_minutes:null,outbound_window:windowValue('searchOutStart','searchOutEnd'),inbound_window:windowValue('searchInStart','searchInEnd'),return_deadline:null,allow_origin_change:false,allow_destination_change:false,arrival_expansion:false,compare_oneways:true});
   submit.disabled=true;try{await startCombined(conditions,true);}finally{submit.disabled=!$('combinedCancel').disabled;}
  });
  input.oninput=()=>{
